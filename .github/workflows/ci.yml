@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # Most tests run against a real Postgres, the same major version as local
+    # dev. db-guard refuses destructive tests unless DATABASE_URL is localhost,
+    # which a service container on the runner satisfies.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: houseladder
+          POSTGRES_PASSWORD: houseladder
+          POSTGRES_DB: houseladder
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U houseladder"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # The local defaults: a localhost database and throwaway secrets.
+      - run: cp .env.example .env.local
+      - run: npm run migrate
+      # Build first: it generates the route types tsc needs.
+      - run: npx next build
+      - run: npx tsc --noEmit
+      - run: npx eslint
+      - run: npm test
