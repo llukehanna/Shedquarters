@@ -39,6 +39,10 @@ during execution rather than discovered afterwards.
 
 ## Cosmetic / cleanup
 
+- `ratings_cache` (the single-row table) is dead since spikeball moved the cache to
+  `ratings_cache_by_sport`. It was left in place so a deploy still running the old code wouldn't
+  break mid-rollout. Drop it once the new code is live.
+
 - `Table.seq` is now dead — nothing reads it since the `Game N` label was dropped. Deleting it also
   retires the note about `seq` skipping voided rows.
 - `sameRoster` (`lib/session.ts`) and `key` (`lib/domain/stats.ts`) are the same function with
@@ -52,5 +56,5 @@ during execution rather than discovered afterwards.
 ## Deferred by design
 
 Inactivity rating decay (documented in the spec), the "who's next" queue, accounts, realtime
-multi-device sync, the cross-game House Cup, games beyond beer die, and tournament bracket
-generation. None requires a schema change to add later.
+multi-device sync, the cross-game House Cup, games beyond beer die and spikeball, and tournament
+bracket generation. None requires a schema change to add later.

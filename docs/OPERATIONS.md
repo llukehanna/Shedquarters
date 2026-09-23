@@ -108,6 +108,16 @@ Then verify:
 - The blob from that URL has every player, session and game, and no `ratings_cache`.
 - `vercel crons ls` lists the backup at `0 9 * * *` (9am UTC, 1–2am in Los Angeles, after a night has ended).
 
+### Deploys that change the schema
+
+`lib/schema.sql` only ever adds things, so run the migration against Neon **before** the new code deploys. The old code keeps working against the new columns. The new code doesn't work without them.
+
+```bash
+DATABASE_URL='<the Neon connection string>' npm run migrate
+```
+
+The spikeball change is one of these: it adds `games.game_type`, `games.target_score` and `ratings_cache_by_sport`.
+
 ### After every deploy
 
 ```bash

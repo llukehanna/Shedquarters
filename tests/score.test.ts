@@ -6,6 +6,8 @@ import {
   losersTax,
   LOSERS_TAX_LINE,
   LOSERS_TAX_MARGIN,
+  losersTaxMargin,
+  deuceLine,
 } from '@/lib/domain/score'
 
 describe('winnerScore', () => {
@@ -105,5 +107,45 @@ describe('constants', () => {
     expect(losersTax(bestTaxed)).toBe(LOSERS_TAX_LINE)
     expect(losersTax(worstUntaxed)).toBeNull()
     expect(LOSERS_TAX_MARGIN).toBe(11)
+  })
+})
+
+describe('other targets (spikeball)', () => {
+  it('gives the winner the target up to the deuce line', () => {
+    expect(winnerScore(0, 11)).toBe(11)
+    expect(winnerScore(9, 11)).toBe(11)
+    expect(winnerScore(13, 15)).toBe(15)
+    expect(winnerScore(23, 25)).toBe(25)
+  })
+
+  it('goes to win by 2 past the deuce line', () => {
+    expect(deuceLine(11)).toBe(9)
+    expect(winnerScore(10, 11)).toBe(12)
+    expect(winnerScore(14, 15)).toBe(16)
+    expect(winnerScore(24, 25)).toBe(26)
+    expect(winnerScore(30, 25)).toBe(32)
+  })
+
+  it('keeps 21 as the default so beer die callers are unchanged', () => {
+    expect(deuceLine()).toBe(19)
+    expect(winnerScore(19)).toBe(winnerScore(19, 21))
+  })
+
+  it('scales the loser’s tax to "never reached half the target"', () => {
+    expect(losersTaxMargin(21)).toBe(LOSERS_TAX_MARGIN)
+    expect(losersTaxMargin(11)).toBe(6)
+    expect(losersTaxMargin(15)).toBe(8)
+    expect(losersTaxMargin(25)).toBe(13)
+    for (const target of [11, 15, 21, 25]) {
+      for (let loser = 0; loser <= deuceLine(target); loser++) {
+        const taxed = losersTax(loser, target) !== null
+        expect(taxed, `${target}–${loser}`).toBe(loser < target / 2)
+      }
+    }
+  })
+
+  it('never taxes a deuce game', () => {
+    expect(losersTax(10, 11)).toBeNull()
+    expect(losersTax(24, 25)).toBeNull()
   })
 })

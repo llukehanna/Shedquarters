@@ -26,10 +26,12 @@ const CLIENT_FAULT_MESSAGES = new Set([
   'invalid request body: winner',
   'invalid request body: loserScore',
   'invalid request body: nextChallengers',
+  'invalid request body: targetScore',
   // lib/session.ts — logGame and the assertDistinct it calls
   'session has ended',
   'session not found',
   'session has no table state',
+  'invalid target score for this game',
   'a player cannot be on both teams',
   'duplicate player on a team',
 ])

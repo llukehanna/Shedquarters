@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db'
 import { winnerScore, isValidLoserScore } from '@/lib/domain/score'
+import { DEFAULT_SPORT, SPORT_RULES, isSport, isValidTarget, isValidTeamSize, type Sport } from '@/lib/domain/sport'
 import type { LogGameInput } from '@/lib/types'
 
 export type TableState = {
@@ -8,11 +9,15 @@ export type TableState = {
   challengers: string[]
   seq: number
   runLength: number
+  /** Which ladder tonight's games count toward. Fixed for the whole night. */
+  gameType: Sport
+  /** What the last game was played to, or what the night started on. The next game's default. */
+  targetScore: number
 }
 
 export async function getActiveTable(): Promise<TableState | null> {
   const [s] = await sql`
-    select id, holders, challengers from sessions
+    select id, holders, challengers, game_type, target_score from sessions
     where ended_at is null order by started_at desc limit 1
   `
   if (!s || !s.holders || !s.challengers) return null
@@ -41,6 +46,8 @@ export async function getActiveTable(): Promise<TableState | null> {
     challengers: s.challengers as string[],
     seq: games.length > 0 ? (games[0].seq as number) : 0,
     runLength,
+    gameType: isSport(s.game_type) ? s.game_type : DEFAULT_SPORT,
+    targetScore: s.target_score as number,
   }
 }
 
@@ -48,19 +55,39 @@ function sameRoster(a: string[], b: string[]): boolean {
   return a.length === b.length && [...a].sort().join() === [...b].sort().join()
 }
 
-export async function startSession(holders: string[], challengers: string[]): Promise<string> {
+export type StartOptions = { gameType?: Sport; targetScore?: number }
+
+export async function startSession(
+  holders: string[],
+  challengers: string[],
+  opts: StartOptions = {},
+): Promise<string> {
+  // Checked at runtime, not just typed: this arrives through a server action,
+  // where the type has already been erased.
+  const gameType = opts.gameType ?? DEFAULT_SPORT
+  if (!isSport(gameType)) throw new Error('unknown game type')
+  const targetScore = opts.targetScore ?? SPORT_RULES[gameType].defaultTarget
+  if (!isValidTarget(gameType, targetScore)) throw new Error('invalid target score for this game')
+  // Beer die has never checked this here, and a size mismatch is still
+  // caught nowhere else for it. Spikeball is always 2v2, so it is enforced.
+  if (gameType !== DEFAULT_SPORT) {
+    if (!isValidTeamSize(gameType, holders.length) || challengers.length !== holders.length) {
+      throw new Error(`${SPORT_RULES[gameType].name} is ${SPORT_RULES[gameType].teamSizes.join(' or ')} a side`)
+    }
+  }
+
   assertDistinct(holders, challengers)
   const teamSize = holders.length
   const [row] = await sql`
-    insert into sessions (holders, challengers, team_size)
-    values (${holders}::uuid[], ${challengers}::uuid[], ${teamSize})
+    insert into sessions (holders, challengers, team_size, game_type, target_score)
+    values (${holders}::uuid[], ${challengers}::uuid[], ${teamSize}, ${gameType}, ${targetScore})
     returning id
   `
   return row.id as string
 }
 
 export async function logGame(input: LogGameInput): Promise<void> {
-  const { clientId, sessionId, winner, loserScore, nextChallengers } = input
+  const { clientId, sessionId, winner, loserScore, nextChallengers, targetScore } = input
   if (!isValidLoserScore(loserScore)) throw new Error(`invalid losing score: ${loserScore}`)
 
   // Idempotency: a retried write must not create a second game.
@@ -69,7 +96,8 @@ export async function logGame(input: LogGameInput): Promise<void> {
 
   // Only an active session has table state to read or update.
   const [s] = await sql`
-    select holders, challengers from sessions where id = ${sessionId} and ended_at is null
+    select holders, challengers, game_type, target_score from sessions
+    where id = ${sessionId} and ended_at is null
   `
   if (!s) {
     const [exists] = await sql`select 1 from sessions where id = ${sessionId}`
@@ -79,8 +107,14 @@ export async function logGame(input: LogGameInput): Promise<void> {
 
   const holders = s.holders as string[]
   const challengers = s.challengers as string[]
+  const gameType: Sport = isSport(s.game_type) ? s.game_type : DEFAULT_SPORT
+  // A game says what it was played to. One queued by an older build doesn't,
+  // and gets the night's current target, which is the only one it could
+  // have meant back when beer die was the only game.
+  const target = targetScore ?? (s.target_score as number)
+  if (!isValidTarget(gameType, target)) throw new Error('invalid target score for this game')
   const holdersWon = winner === 'holders'
-  const win = winnerScore(loserScore)
+  const win = winnerScore(loserScore, target)
   const newHolders = holdersWon ? holders : challengers
 
   // Validate before any write. If this throws, neither the game row nor the
@@ -98,21 +132,27 @@ export async function logGame(input: LogGameInput): Promise<void> {
 
     // team_a is always the holding team, so replay order and table order agree.
     await tx`
-      insert into games (session_id, seq, team_a, team_b, winner, score_a, score_b, client_id)
+      insert into games (
+        session_id, seq, team_a, team_b, winner, score_a, score_b, client_id, game_type, target_score
+      )
       values (
         ${sessionId}, ${next},
         ${holders}::uuid[], ${challengers}::uuid[],
         ${holdersWon ? 'a' : 'b'},
         ${holdersWon ? win : loserScore},
         ${holdersWon ? loserScore : win},
-        ${clientId}
+        ${clientId},
+        ${gameType}, ${target}
       )
       on conflict (client_id) do nothing
     `
 
+    // The target sticks: the next game defaults to whatever this one was
+    // played to, on every phone, not just the one that logged it.
     await tx`
       update sessions
-      set holders = ${newHolders}::uuid[], challengers = ${nextChallengers}::uuid[]
+      set holders = ${newHolders}::uuid[], challengers = ${nextChallengers}::uuid[],
+          target_score = ${target}
       where id = ${sessionId}
     `
   })
@@ -144,7 +184,9 @@ export async function setTeams(
   // Only an active session has table state to overwrite — the same rule
   // logGame enforces, and for the same reason: an ended night's table is not
   // there to be edited.
-  const [s] = await sql`select id from sessions where id = ${sessionId} and ended_at is null`
+  const [s] = await sql`
+    select id, game_type from sessions where id = ${sessionId} and ended_at is null
+  `
   if (!s) {
     const [exists] = await sql`select 1 from sessions where id = ${sessionId}`
     throw new Error(exists ? 'session has ended' : 'session not found')
@@ -156,6 +198,11 @@ export async function setTeams(
   // 3v3; a team_size the toggle can't represent would silently corrupt what
   // every other screen assumes about this session.
   if (teamSize !== 2 && teamSize !== 3) throw new Error('team size must be 2 or 3')
+  // Spikeball is 2v2 and nothing else; a 3v3 night of it can't be written.
+  const gameType: Sport = isSport(s.game_type) ? s.game_type : DEFAULT_SPORT
+  if (!isValidTeamSize(gameType, teamSize)) {
+    throw new Error(`${SPORT_RULES[gameType].name} is ${SPORT_RULES[gameType].teamSizes.join(' or ')} a side`)
+  }
 
   if (holders.length !== teamSize) throw new Error(`holders must have exactly ${teamSize} players`)
   if (challengers.length !== teamSize) throw new Error(`challengers must have exactly ${teamSize} players`)
@@ -175,7 +222,7 @@ export async function setTeams(
 
 export async function voidLastGame(sessionId: string): Promise<void> {
   const [g] = await sql`
-    select id, team_a, team_b from games
+    select id, team_a, team_b, target_score from games
     where session_id = ${sessionId} and voided = false
     order by seq desc limit 1
   `
@@ -189,10 +236,12 @@ export async function voidLastGame(sessionId: string): Promise<void> {
   await sql.begin(async (tx) => {
     await tx`update games set voided = true where id = ${g.id}`
 
-    // Restore the table to what it was immediately before that game.
+    // Restore the table to what it was immediately before that game, and the
+    // target to the one it was played to, so re-entering it starts there.
     await tx`
       update sessions
-      set holders = ${g.team_a}::uuid[], challengers = ${g.team_b}::uuid[]
+      set holders = ${g.team_a}::uuid[], challengers = ${g.team_b}::uuid[],
+          target_score = ${g.target_score}
       where id = ${sessionId}
     `
   })

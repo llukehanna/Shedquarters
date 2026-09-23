@@ -8,9 +8,10 @@ Every statement is idempotent (`create … if not exists`, `add column if not ex
 | Table | Holds | Notes |
 |---|---|---|
 | `players` | Name, housemate or guest, nicknames | `display_name` is unique; nicknames aren't, on purpose (two people can both be "Big Cat") |
-| `sessions` | One night of play | `holders` / `challengers` are the live table state; `ended_at` closes the night |
+| `sessions` | One night of play | `game_type` is the night's sport; `target_score` is what the next game defaults to; `holders` / `challengers` are the live table state; `ended_at` closes the night |
 | `games` | Every game ever played | **Append-only** apart from `voided`. The source of truth for everything derived |
-| `ratings_cache` | One row: the latest replay | Keyed by a fingerprint of `games`; see [RATINGS.md](RATINGS.md) |
+| `ratings_cache_by_sport` | One row per sport: the latest replay | Keyed by a fingerprint of that sport's `games`; see [RATINGS.md](RATINGS.md) |
+| `ratings_cache` | Unused | The single-row cache from before spikeball, kept so an old deploy still works mid-rollout. Safe to drop |
 | `auth_attempts` | Gate attempts | IPs stored only as an HMAC; rows deleted after 7 days |
 | `player_claims` | Which players a phone has claimed | One row per player; a new phone updates it |
 | `house_settings` | One row: `invite_version` | The invite link is derived from it and never stored |
@@ -28,6 +29,8 @@ winner     'a' | 'b'
 score_a, score_b  int >= 0
 voided     boolean                   -- an undo; never reverted
 client_id  uuid unique               -- generated on the phone; the idempotency key
+game_type  'beer_die' | 'spikeball'  -- copied from the night, so ladders filter without a join
+target_score int                     -- what this game was played to: 21, or 25 / 15 / 11
 created_at timestamptz
 ```
 

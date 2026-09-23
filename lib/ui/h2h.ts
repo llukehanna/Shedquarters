@@ -1,4 +1,7 @@
-export type H2hSelection = { a?: string; b?: string }
+import { withSport, type Sport } from '@/lib/domain/sport'
+
+/** `sport` is carried along so a pick never jumps you to the other ladder. Absent means beer die. */
+export type H2hSelection = { a?: string; b?: string; sport?: Sport }
 
 /**
  * Normalizes a single search-param value. Next types a repeated query key
@@ -21,10 +24,16 @@ export function buildH2hHref(current: H2hSelection, key: 'a' | 'b', id: string):
   if (next[key] === id) delete next[key]
   else next[key] = id
 
+  return h2hPath(next)
+}
+
+/** The page's URL for a selection, exactly as it stands. */
+export function h2hPath(selection: H2hSelection): string {
   const params = new URLSearchParams()
-  if (next.a) params.set('a', next.a)
-  if (next.b) params.set('b', next.b)
+  if (selection.a) params.set('a', selection.a)
+  if (selection.b) params.set('b', selection.b)
 
   const qs = params.toString()
-  return qs ? `/h2h?${qs}` : '/h2h'
+  const path = qs ? `/h2h?${qs}` : '/h2h'
+  return selection.sport ? withSport(path, selection.sport) : path
 }

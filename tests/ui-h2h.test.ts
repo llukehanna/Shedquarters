@@ -25,6 +25,17 @@ describe('buildH2hHref', () => {
   })
 })
 
+describe('buildH2hHref with a sport', () => {
+  it('keeps the spikeball ladder when picking', () => {
+    expect(buildH2hHref({ sport: 'spikeball' }, 'a', 'p1')).toBe('/h2h?a=p1&sport=spikeball')
+    expect(buildH2hHref({ a: 'p1', sport: 'spikeball' }, 'a', 'p1')).toBe('/h2h?sport=spikeball')
+  })
+
+  it('adds nothing for beer die', () => {
+    expect(buildH2hHref({ sport: 'beer_die' }, 'a', 'p1')).toBe('/h2h?a=p1')
+  })
+})
+
 describe('firstParam', () => {
   it('passes a plain string through', () => {
     expect(firstParam('p1')).toBe('p1')

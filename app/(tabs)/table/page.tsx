@@ -34,6 +34,8 @@ export default async function TablePage() {
         runLength: table.runLength,
         seq: table.seq,
       }}
+      sport={table.gameType}
+      serverTarget={table.targetScore}
       players={players}
     />
   )

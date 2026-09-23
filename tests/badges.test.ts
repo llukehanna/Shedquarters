@@ -289,3 +289,23 @@ describe('badge order', () => {
     expect(GHOST_DAYS).toBe(21)
   })
 })
+
+describe('earnedBadges for games to other targets', () => {
+  it('counts a spikeball deuce win as a heartbreaker', () => {
+    const b = badge([...seasonOfGames(), game({ scoreA: 17, scoreB: 15, targetScore: 15 })], 'heartbreaker')
+    expect(b).toEqual({ kind: 'heartbreaker', count: 1 })
+  })
+
+  it('does not count a win that reached the target outright', () => {
+    expect(kinds([...seasonOfGames(), game({ scoreA: 11, scoreB: 9, targetScore: 11 })])).not.toContain(
+      'heartbreaker',
+    )
+  })
+
+  it('awards a skunk in any game', () => {
+    expect(badge([...seasonOfGames(), game({ scoreA: 11, scoreB: 0, targetScore: 11 })], 'skunk')).toEqual({
+      kind: 'skunk',
+      count: 1,
+    })
+  })
+})

@@ -89,3 +89,27 @@ alter table players add column if not exists nicknames text[] not null default '
 -- column existed reads back as a cache miss for deltas specifically (not a
 -- crash and not a stale `payload` shape), and self-heals on the next write.
 alter table ratings_cache add column if not exists deltas jsonb;
+
+-- Spikeball (lib/domain/sport.ts). `sessions.game_type` and `target_score`
+-- have been there from the start, and a game now carries its own copy of both.
+-- The sport is copied from its night so every ladder query can filter games
+-- without a join, and the target is per game because spikeball's length is
+-- picked game by game (25, 15 or 11). Every existing row is a beer die game
+-- to 21, which is exactly what the defaults say.
+alter table games add column if not exists game_type    text not null default 'beer_die';
+alter table games add column if not exists target_score int  not null default 21;
+
+create index if not exists games_game_type_ord_idx on games (game_type, ord);
+
+-- One cached replay per sport (lib/ratings-cache.ts). Same contract as the
+-- single-row `ratings_cache` above, keyed by sport instead of pinned to id 1.
+-- Ratings never cross sports, so neither does the cache or its fingerprint.
+-- `ratings_cache` is left in place so a deploy that is still running the old
+-- code can keep using it. Nothing new reads or writes it.
+create table if not exists ratings_cache_by_sport (
+  game_type   text primary key,
+  fingerprint text not null,
+  payload     jsonb not null,
+  deltas      jsonb not null,
+  computed_at timestamptz not null default now()
+);

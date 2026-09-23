@@ -9,6 +9,8 @@ import { PROVISIONAL_GAMES } from '@/lib/domain/ratings'
 import { TopBar } from '@/components/ui/TopBar'
 import { RankRow } from '@/components/ui/RankRow'
 import { InstallHint } from '@/components/InstallHint'
+import { SportSwitch } from '@/components/ui/SportSwitch'
+import { SPORT_RULES, parseSport, withSport } from '@/lib/domain/sport'
 import { formatRating, formatRecord, formatPercent, formatDiff, countLabel } from '@/lib/ui/format'
 
 export const dynamic = 'force-dynamic'
@@ -19,16 +21,21 @@ const SHAME_LABELS: Record<ShameEntry['slot'], string> = {
   cursed: 'Cursed',
 }
 
-export default async function Ranks() {
+export default async function Ranks({
+  searchParams,
+}: {
+  searchParams: Promise<{ sport?: string | string[] }>
+}) {
+  const sport = parseSport((await searchParams).sport)
   const [ratings, players, games, table] = await Promise.all([
-    getRatings(),
+    getRatings(sport),
     getPlayers(),
     // Unbounded: longestRuns/mostCarried/movement/shame all need the full
     // history, not the game-log page's usual cap. getGameLogAll() is its
     // own query (same row shape as getGameLog(), just no limit/truncation
     // to misuse) — getGames() stays untouched for the ratings cache and
     // lib/domain/stats's other callers.
-    getGameLogAll(),
+    getGameLogAll(sport),
     getActiveTable(),
   ])
   const name = (id: string) => players.find((p) => p.id === id)?.displayName ?? '?'
@@ -80,7 +87,11 @@ export default async function Ranks() {
         <br />
         <span className="text-gold">Rankings</span>
       </h1>
-      <p className="eyebrow mt-2 mb-4">Beer die · {countLabel(played, 'game')}</p>
+      <p className="eyebrow mt-2 mb-4">
+        {SPORT_RULES[sport].name} · {countLabel(played, 'game')}
+      </p>
+
+      <SportSwitch sport={sport} path="/" />
 
       {ratings.length === 0 ? (
         <section className="mt-12 text-center">
@@ -109,7 +120,7 @@ export default async function Ranks() {
                 name={name(r.playerId)}
                 rating={formatRating(r.ordinal)}
                 record={formatRecord(r.wins, r.games)}
-                href={`/players/${r.playerId}`}
+                href={withSport(`/players/${r.playerId}`, sport)}
                 first={i === 0}
                 provisional={r.provisional}
                 streak={streaksById.get(r.playerId) ?? null}
@@ -176,7 +187,7 @@ export default async function Ranks() {
       )}
 
       <Link
-        href="/games"
+        href={withSport('/games', sport)}
         className="surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-cream"
       >
         Every game
@@ -184,7 +195,7 @@ export default async function Ranks() {
       </Link>
 
       <Link
-        href="/h2h"
+        href={withSport('/h2h', sport)}
         className="surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-cream"
       >
         Head to head
