@@ -1,0 +1,89 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #0b0304;
+  --color-ink-glow: #170507;
+  --color-ink-deep: #070203;
+  --color-cardinal: #990000;
+  --color-cardinal-hi: #b30000;
+  --color-cardinal-deep: #6e0000;
+  --color-gold: #ffcc00;
+  --color-gold-ink: #3a0000;
+  --color-cream: #f7eedc;
+  --color-muted: #9e8570;
+  --color-faint: #5e4a3c;
+  --color-up: #4ade80;
+  --color-down: #ff6b6b;
+  --color-cardinal-glow: #c40000;
+  --color-cardinal-shade: #8a0000;
+  --color-sheet-top: #1f0709;
+  --color-sheet-bottom: #0d0304;
+}
+
+/* `inline` so the utilities reference the next/font variables set on <html>. */
+@theme inline {
+  --font-display: var(--font-barlow-condensed);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-body: var(--font-inter-tight);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-ink);
+    /* Scrolling to a new page's top must stop below the status bar, not under it. */
+    scroll-padding-top: env(safe-area-inset-top);
+  }
+
+  body {
+    min-height: 100dvh;
+    /* Full-screen home-screen app: keep content below the status bar. */
+    padding-top: env(safe-area-inset-top);
+    background: radial-gradient(
+      120% 60% at 50% 0%,
+      var(--color-ink-glow) 0%,
+      var(--color-ink) 45%,
+      var(--color-ink-deep) 100%
+    );
+    background-attachment: fixed;
+    color: var(--color-cream);
+    font-family: var(--font-body), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Broadcast headline: condensed, heavy, italic, all caps. */
+@utility headline {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.88;
+}
+
+/* Small spaced uppercase label above a section. */
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* The standard dark card: faint cream fill, faint gold hairline. */
+@utility surface {
+  background: rgb(247 238 220 / 0.045);
+  border: 1px solid rgb(255 204 0 / 0.12);
+}
+
+/* The cardinal card used for the holding team and #1. */
+@utility cardinal-panel {
+  background: linear-gradient(150deg, var(--color-cardinal-hi), var(--color-cardinal-deep));
+  border: 1.5px solid rgb(255 204 0 / 0.55);
+}

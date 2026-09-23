@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0304" />
+    <title>Offline · Shedquarters</title>
+    <style>
+      html { background: #0b0304; color-scheme: dark; }
+      body {
+        margin: 0; min-height: 100dvh; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 14px; padding: 24px; box-sizing: border-box; text-align: center;
+        background: radial-gradient(120% 60% at 50% 0%, #170507 0%, #0b0304 45%, #070203 100%);
+        color: #f7eedc; font-family: system-ui, -apple-system, sans-serif;
+      }
+      .mark { font: italic 800 44px/0.9 "Arial Narrow", system-ui, sans-serif; text-transform: uppercase; letter-spacing: -0.01em; }
+      .mark span { color: #ffcc00; }
+      h1 { margin: 12px 0 0; font: italic 800 30px/1 "Arial Narrow", system-ui, sans-serif; text-transform: uppercase; }
+      p { margin: 0; max-width: 300px; color: #9e8570; font-size: 15px; line-height: 1.45; }
+      button {
+        margin-top: 10px; min-height: 48px; padding: 0 28px; border: 0; border-radius: 12px; background: #ffcc00;
+        color: #3a0000; font: italic 800 18px/1 "Arial Narrow", system-ui, sans-serif; text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mark">Shed<span>HQ</span></div>
+    <h1>No signal</h1>
+    <p>Shedquarters needs a connection to load. Games already logged at the table are saved on this phone and sync when you're back.</p>
+    <button type="button" onclick="location.reload()">Try again</button>
+  </body>
+</html>
