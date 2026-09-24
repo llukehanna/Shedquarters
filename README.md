@@ -4,7 +4,7 @@
 
 A skill-rating ladder for a house league, scored from a phone at the table and live at [shed.lukeghanna.com](https://shed.lukeghanna.com).
 
-The game is beer die: 2v2 or 3v3, first to 21, win by 2, and the winners stay on.
+The games are beer die (2v2 or 3v3, first to 21) and spikeball (2v2, first to 25, 15 or 11, picked game by game). Both are win by 2, the winners stay on, and each has its own ladder.
 Someone at the table taps who won and what the losers finished on. Everyone else's phone shows the rankings, a game log, head-to-heads, and badges.
 Ratings are [OpenSkill](https://github.com/philihp/openskill.js), replayed from the full game history on every change.
 
@@ -64,7 +64,7 @@ It installs to the home screen as a web app and has its own offline screen.
 - **OpenSkill** (Plackett–Luce) for ratings
 - **Tailwind CSS 4**, **Motion** for animation
 - **Vercel**: Fluid Compute, a nightly Cron backup to Vercel Blob
-- **Vitest**: 561 tests, most of them against a real Postgres; GitHub Actions CI
+- **Vitest**: 611 tests, most of them against a real Postgres; GitHub Actions CI
 
 ## Running locally
 
@@ -87,7 +87,7 @@ Checks:
 npx next build           # first: it generates the route types tsc needs
 npx tsc --noEmit
 npx eslint
-npm test                 # 561 tests across 39 files
+npm test                 # 611 tests across 41 files
 npm run smoke            # a full session against the local DB: start, log, undo, replay, end
 ```
 
@@ -125,9 +125,9 @@ Each of these made it into code or was caught in review, and each changed how th
 ## Status
 
 - Live and in use at [shed.lukeghanna.com](https://shed.lukeghanna.com). The rankings, game log and player pages are public; changing anything needs the house PIN or invite link
-- 561 tests across 39 files; build, typecheck, lint and tests run in CI against Postgres 17
+- 611 tests across 41 files; build, typecheck, lint and tests run in CI against Postgres 17
 - One shared PIN, no per-person accounts, by design. A phone claims a player with "Who are you?", which is identity, not authentication
-- 2v2 and 3v3 only. No rating decay for inactive players yet (a "Ghost" badge marks them instead)
+- Beer die (2v2 and 3v3) and spikeball (2v2) only, each rated separately. No rating decay for inactive players yet (a "Ghost" badge marks them instead)
 - Known gaps and cleanup are tracked in [docs/FOLLOWUPS.md](docs/FOLLOWUPS.md)
 
 ## License

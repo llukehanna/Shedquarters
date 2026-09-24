@@ -15,13 +15,17 @@ import {
   clearDeadLettered,
 } from '@/lib/client/queue'
 import { voidLastGame, endSession, setTeams } from '@/lib/actions'
-import { winnerScore, losersTax } from '@/lib/domain/score'
+import { winnerScore, losersTax, deuceLine } from '@/lib/domain/score'
+import { SPORT_RULES, isValidTarget, type Sport } from '@/lib/domain/sport'
 import {
   loadTableState,
   saveTableState,
   clearTableState,
   clearSetupState,
   isTableStateCurrent,
+  loadTarget,
+  saveTarget,
+  clearTarget,
 } from '@/lib/client/persist'
 import { TopBar } from '@/components/ui/TopBar'
 import { Button } from '@/components/ui/Button'
@@ -29,6 +33,7 @@ import { Pill } from '@/components/ui/Pill'
 import { Sheet } from '@/components/ui/Sheet'
 import { TeamButton } from '@/components/ui/TeamButton'
 import { TeamSizeToggle, type TeamSize } from '@/components/ui/TeamSizeToggle'
+import { TargetToggle } from '@/components/ui/SportSwitch'
 import { LineupEditor } from '@/components/LineupEditor'
 import {
   createLineup,
@@ -51,14 +56,23 @@ type Phase =
 export function TableMode({
   sessionId,
   serverTable,
+  sport,
+  serverTarget,
   players,
 }: {
   sessionId: string
   serverTable: Table
+  sport: Sport
+  /** The night's current target on the server: what the last game was played to. */
+  serverTarget: number
   players: Player[]
 }) {
   const router = useRouter()
+  const rules = SPORT_RULES[sport]
   const [table, setTable] = useState<Table>(serverTable)
+  // What the next game is being played to. Starts on the server's value and
+  // is replaced by this phone's own pick, if it made one, once restored below.
+  const [target, setTarget] = useState(serverTarget)
   const [phase, setPhase] = useState<Phase>({ step: 'winner' })
   const [picked, setPicked] = useState<string[]>([])
   const [queued, setQueued] = useState(0)
@@ -150,6 +164,9 @@ export function TableMode({
     // older build's shape never gets here: `isStoredTableState` rejects it
     // outright, so `restored` is null and this falls back to the live table.
     setTeamsLineup(current && restored.lineup !== null ? fromStoredLineup(restored.lineup) : null)
+    // The target outlives the phase: it's a choice about the next game, not
+    // a screen in the middle of logging one.
+    setTarget(loadTarget(sessionId, sport) ?? serverTarget)
     setHydrated(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId])
@@ -226,14 +243,23 @@ export function TableMode({
 
   const name = (id: string) => players.find((p) => p.id === id)?.displayName ?? '?'
 
+  function changeTarget(next: number) {
+    if (!isValidTarget(sport, next)) return
+    setTarget(next)
+    saveTarget(sessionId, next)
+  }
+
   function log(winner: 'holders' | 'challengers', loserScore: number) {
     setError(null)
+    // The target travels with the game, so a game that waits in the queue
+    // is still recorded as what it was played to, whatever gets picked next.
     const item: LogGameInput = {
       clientId: crypto.randomUUID(),
       sessionId,
       winner,
       loserScore,
       nextChallengers: picked,
+      targetScore: target,
     }
     enqueue(item)
     setTable((t) => applyGame(t, winner, picked))
@@ -308,6 +334,7 @@ export function TableMode({
       await endSession(sessionId)
       // The phase being restored belongs to a night that is now over.
       clearTableState(sessionId)
+      clearTarget(sessionId)
     } catch (e) {
       // The gate redirects a signed-out phone by throwing; let that through.
       unstable_rethrow(e)
@@ -435,6 +462,14 @@ export function TableMode({
         ? `${dead} game${dead > 1 ? 's' : ''} not recorded`
         : 'all synced'
 
+  // The losing scores a plain win can end on (0 to 19 for a game to 21), and
+  // twenty past that for a game that went to deuce. A 25-point game has 24
+  // plain scores, which sit better six to a row than five.
+  const plainScores = [...Array(deuceLine(target) + 1).keys()]
+  const deuceScores = [...Array(20).keys()].map((n) => n + deuceLine(target) + 1)
+  const plainCols = plainScores.length % 6 === 0 ? 'grid-cols-6' : 'grid-cols-5'
+  const plainSpan = plainScores.length % 6 === 0 ? 'col-span-6' : 'col-span-5'
+
   // The "who won" view is also shown behind the score sheet.
   if (phase.step === 'winner' || phase.step === 'score') {
     const scoring = phase.step === 'score' ? phase.winner : null
@@ -501,8 +536,14 @@ export function TableMode({
           )}
         </div>
 
+        {rules.targets.length > 1 && (
+          <div className="mb-3">
+            <TargetToggle sport={sport} target={target} onChange={changeTarget} />
+          </div>
+        )}
+
         <TeamButton
-          label="Holding the table"
+          label={`Holding the ${rules.holds}`}
           names={table.holders.map(name)}
           holding
           ghost={table.runLength > 0 ? String(table.runLength) : undefined}
@@ -587,20 +628,20 @@ export function TableMode({
                 <span className="font-display text-[15px] uppercase tracking-[0.1em] text-gold">Win by 2</span>
               ) : (
                 <>
-                  21–<span className="text-gold">?</span>
+                  {target}–<span className="text-gold">?</span>
                 </>
               )}
             </span>
           </div>
           {/* Win by 2 means the losing score decides the whole final, but only
-              past 19 is that non-obvious — so spell the rule out there. */}
+              past the deuce line is that non-obvious — so spell the rule out there. */}
           <p className="mb-3 text-[13px] leading-snug text-muted">
             {pastTarget
-              ? 'Nobody closed it out at 21, so the winner takes it two clear. Tap what the losers finished on.'
-              : 'Winner gets 21. Tap what the losers finished on.'}
+              ? `Nobody closed it out at ${target}, so the winner takes it two clear. Tap what the losers finished on.`
+              : `Winner gets ${target}. Tap what the losers finished on.`}
           </p>
-          <div className={`grid gap-1.5 ${pastTarget ? 'grid-cols-4' : 'grid-cols-5'}`}>
-            {(pastTarget ? [...Array(20).keys()].map((n) => n + 20) : [...Array(20).keys()]).map((n) => (
+          <div className={`grid gap-1.5 ${pastTarget ? 'grid-cols-4' : plainCols}`}>
+            {(pastTarget ? deuceScores : plainScores).map((n) => (
               <button
                 key={n}
                 type="button"
@@ -614,7 +655,7 @@ export function TableMode({
                 <span className="text-[22px] leading-none">{n}</span>
                 {pastTarget && (
                   <span className="mt-0.5 font-mono text-[11px] font-bold text-gold">
-                    {winnerScore(n)}–{n}
+                    {winnerScore(n, target)}–{n}
                   </span>
                 )}
               </button>
@@ -622,9 +663,11 @@ export function TableMode({
             <button
               type="button"
               onClick={() => setPastTarget((d) => !d)}
-              className={`min-h-12 rounded-[10px] border border-gold/35 font-display text-[15px] font-extrabold uppercase tracking-[0.06em] text-gold ${pastTarget ? 'col-span-4' : 'col-span-5'}`}
+              className={`min-h-12 rounded-[10px] border border-gold/35 font-display text-[15px] font-extrabold uppercase tracking-[0.06em] text-gold ${pastTarget ? 'col-span-4' : plainSpan}`}
             >
-              {pastTarget ? '← Back to 0–19' : 'Went past 21 · score 20+'}
+              {pastTarget
+                ? `← Back to 0–${deuceLine(target)}`
+                : `Went past ${target} · score ${deuceLine(target) + 1}+`}
             </button>
           </div>
         </Sheet>
@@ -638,7 +681,15 @@ export function TableMode({
 
     return (
       <main>
-        <TopBar live right={<TeamSizeToggle size={effectiveTeamsLineup.size} onChange={changeTeamsSize} />} />
+        <TopBar
+          live
+          right={
+            // Spikeball is 2v2 only, so there is no size to change.
+            rules.teamSizes.length > 1 ? (
+              <TeamSizeToggle size={effectiveTeamsLineup.size} onChange={changeTeamsSize} />
+            ) : undefined
+          }
+        />
 
         <h1 className="headline mt-3 text-[40px]">
           Change <span className="text-gold">teams</span>
@@ -690,13 +741,13 @@ export function TableMode({
   // that is already in `phase`, written nowhere, and read by nothing that
   // logs a game. `log()` below is untouched — the game that gets enqueued
   // and rated is exactly the game that would have been without this line.
-  const tax = losersTax(phase.loserScore)
+  const tax = losersTax(phase.loserScore, target)
 
   return (
     <main>
       <TopBar live />
       <Pill tone="gold">
-        Final {winnerScore(phase.loserScore)}–{phase.loserScore}
+        Final {winnerScore(phase.loserScore, target)}–{phase.loserScore}
       </Pill>
       {tax && <p className="mt-2 text-[13px] leading-snug font-semibold text-gold">{tax}</p>}
       <h1 className="headline mt-3 text-[40px]">

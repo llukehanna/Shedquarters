@@ -108,6 +108,15 @@ Then verify:
 - The blob from that URL has every player, session and game, and no `ratings_cache`.
 - `vercel crons ls` lists the backup at `0 9 * * *` (9am UTC, 1–2am in Los Angeles, after a night has ended).
 
+### Schema migrations
+
+Production builds run `npm run migrate` before `next build` (the `buildCommand` in `vercel.ts`), using the production `DATABASE_URL`, which Vercel provides at build time.
+`lib/schema.sql` is idempotent and only ever adds things, so this is a no-op on a deploy with no schema change, and the version still serving traffic keeps working while the new one builds.
+If the migration fails, the build fails and the previous deployment stays live.
+Preview builds skip it: `DATABASE_URL` is production-only, and a preview must never change the production schema.
+
+To run it by hand anyway: `DATABASE_URL='<the Neon connection string>' npm run migrate`.
+
 ### After every deploy
 
 ```bash

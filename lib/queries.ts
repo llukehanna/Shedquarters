@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db'
 import type { GameRecord } from '@/lib/domain/ratings'
 import { capGameLog } from '@/lib/domain/game-log'
+import type { Sport } from '@/lib/domain/sport'
 
 export type Player = {
   id: string
@@ -24,10 +25,11 @@ export async function getPlayers(): Promise<Player[]> {
   }))
 }
 
-export async function getGames(): Promise<GameRecord[]> {
+/** One sport's games, in replay order. Sports never share a ladder, so nothing reads across them. */
+export async function getGames(sport: Sport): Promise<GameRecord[]> {
   const rows = await sql`
-    select ord, team_a, team_b, winner, score_a, score_b, voided
-    from games order by ord
+    select ord, team_a, team_b, winner, score_a, score_b, voided, target_score
+    from games where game_type = ${sport} order by ord
   `
   return rows.map((r) => ({
     ord: Number(r.ord),
@@ -37,6 +39,7 @@ export async function getGames(): Promise<GameRecord[]> {
     scoreA: r.score_a as number,
     scoreB: r.score_b as number,
     voided: r.voided as boolean,
+    targetScore: r.target_score as number,
   }))
 }
 
@@ -61,6 +64,7 @@ type GameLogRow = {
   score_a: number
   score_b: number
   voided: boolean
+  target_score: number
 }
 
 function mapGameLogRow(r: GameLogRow): GameLogEntry {
@@ -74,6 +78,7 @@ function mapGameLogRow(r: GameLogRow): GameLogEntry {
     scoreA: r.score_a,
     scoreB: r.score_b,
     voided: r.voided,
+    targetScore: r.target_score,
   }
 }
 
@@ -88,11 +93,12 @@ function mapGameLogRow(r: GameLogRow): GameLogEntry {
  * exactly `limit` games ever tripping a false "older games not shown".
  */
 export async function getGameLog(
+  sport: Sport,
   limit: number = GAME_LOG_LIMIT,
 ): Promise<{ games: GameLogEntry[]; truncated: boolean }> {
   const rows = await sql`
-    select ord, session_id, created_at, team_a, team_b, winner, score_a, score_b, voided
-    from games order by ord desc limit ${limit + 1}
+    select ord, session_id, created_at, team_a, team_b, winner, score_a, score_b, voided, target_score
+    from games where game_type = ${sport} order by ord desc limit ${limit + 1}
   `
   const mapped = rows.map((r) => mapGameLogRow(r as unknown as GameLogRow))
   const { rows: games, truncated } = capGameLog(mapped, limit)
@@ -119,6 +125,7 @@ function mapGameHistoryRow(r: GameHistoryRow): GameHistoryEntry {
     scoreA: r.score_a,
     scoreB: r.score_b,
     voided: r.voided,
+    targetScore: r.target_score,
   }
 }
 
@@ -130,25 +137,26 @@ function mapGameHistoryRow(r: GameHistoryRow): GameHistoryEntry {
  * truncate — reusing getGameLog() with an artificially huge limit would
  * misuse a paginated helper and silently discard its `truncated` signal.
  */
-export async function getGameLogAll(): Promise<GameHistoryEntry[]> {
+export async function getGameLogAll(sport: Sport): Promise<GameHistoryEntry[]> {
   const rows = await sql`
-    select ord, created_at, team_a, team_b, winner, score_a, score_b, voided
-    from games order by ord
+    select ord, created_at, team_a, team_b, winner, score_a, score_b, voided, target_score
+    from games where game_type = ${sport} order by ord
   `
   return rows.map((r) => mapGameHistoryRow(r as unknown as GameHistoryRow))
 }
 
 /**
- * Changes on any insert or void. Counting voided rows separately is what
- * makes a void invalidate the cache — a void changes neither the row count
- * nor the max ord.
+ * Changes on any insert or void of this sport's games. Counting voided rows
+ * separately is what makes a void invalidate the cache — a void changes
+ * neither the row count nor the max ord. Scoped to one sport, every term is
+ * still monotonic: a game never changes sport.
  */
-export async function getFingerprint(): Promise<string> {
+export async function getFingerprint(sport: Sport): Promise<string> {
   const [row] = await sql`
     select count(*)::text || ':' ||
            coalesce(max(ord), 0)::text || ':' ||
            count(*) filter (where voided)::text as fp
-    from games
+    from games where game_type = ${sport}
   `
   return row.fp as string
 }

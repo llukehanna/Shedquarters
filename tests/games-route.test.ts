@@ -85,6 +85,27 @@ describe('POST /api/games status mapping', () => {
 
     expect((await POST(post(valid))).status).toBe(400)
   })
+
+  // A game to a target its night's sport doesn't allow will never be
+  // accepted, so it has to be terminal rather than wedge the queue.
+  it('returns 400 for a target the sport is not played to', async () => {
+    vi.mocked(logGame).mockRejectedValue(new Error('invalid target score for this game'))
+
+    expect((await POST(post({ ...valid, targetScore: 21 }))).status).toBe(400)
+  })
+
+  it('returns 400 for a malformed target score without calling logGame', async () => {
+    const res = await POST(post({ ...valid, targetScore: 'fifteen' }))
+
+    expect(res.status).toBe(400)
+    expect(logGame).not.toHaveBeenCalled()
+  })
+
+  it('passes a target score through to logGame', async () => {
+    await POST(post({ ...valid, targetScore: 11 }))
+
+    expect(logGame).toHaveBeenCalledWith({ ...valid, targetScore: 11 })
+  })
 })
 
 describe('POST /api/games body validation', () => {

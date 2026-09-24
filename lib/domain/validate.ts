@@ -33,11 +33,22 @@ export function parseLogGameInput(body: unknown): LogGameInput {
     throw new Error('invalid request body: nextChallengers')
   }
 
-  return {
+  // Absent is fine (see LogGameInput). Present, it has to be a real target;
+  // whether it is one this night's sport allows is logGame's call.
+  if (
+    b.targetScore !== undefined &&
+    (typeof b.targetScore !== 'number' || !Number.isInteger(b.targetScore) || b.targetScore <= 0)
+  ) {
+    throw new Error('invalid request body: targetScore')
+  }
+
+  const input: LogGameInput = {
     clientId: b.clientId,
     sessionId: b.sessionId,
     winner: b.winner,
     loserScore: b.loserScore,
     nextChallengers: b.nextChallengers,
   }
+  if (b.targetScore !== undefined) input.targetScore = b.targetScore
+  return input
 }
