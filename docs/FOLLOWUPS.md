@@ -5,17 +5,8 @@ during execution rather than discovered afterwards.
 
 ## Worth doing before the ladder gets heavy use
 
-- **No component test harness.** `vitest.config.ts` is `environment: 'node'` with no jsdom, so the
-  dead-letter UI surface — the "N games not recorded" banner, Dismiss, and the refuse-to-end
-  message — is covered only by build and typecheck. Two cases to write first: a drain that
-  dead-letters must not render "all synced", and the end-session gate must refuse while
-  `deadCount() > 0`.
 - **`dropLast()` during an in-flight POST** can drop a game the server already accepted, making
   that Undo a silent no-op. Pre-dates the offline-queue fix waves.
-- **A fast double tap on "Log it" can land on "Undo last game".** After logging, the winner view
-  renders with Undo near where "Log it" was, and Undo drops the just-logged game without confirming.
-  Needs an in-flight guard or an Undo confirm; left alone in the Shedquarters design plan because it
-  changes handler logic.
 - **Deuce pad tops out at 39.** Task 6 of the Shedquarters design plan replaced `window.prompt`
   (which accepted any integer from 20 up) with a 20–39 on-screen pad. A losing score of 40+ can't be
   entered until someone widens it.
