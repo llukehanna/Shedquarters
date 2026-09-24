@@ -47,6 +47,16 @@ import {
   type Lineup,
 } from '@/lib/domain/lineup'
 
+/**
+ * How long "Undo last game" stays off after a game is logged. Logging swaps
+ * the challengers screen for the "who won" screen in one render, and Undo
+ * lands close to where "Log it" was, so the second tap of a double tap would
+ * otherwise drop the game it just logged — with no confirm, and silently if
+ * it was still queued. A second is longer than any double tap and shorter
+ * than anyone takes to decide a game was logged wrong.
+ */
+export const UNDO_GRACE_MS = 1_000
+
 type Phase =
   | { step: 'winner' }
   | { step: 'score'; winner: 'holders' | 'challengers' }
@@ -83,6 +93,9 @@ export function TableMode({
   const [forceEnd, setForceEnd] = useState(false)
   const [ending, setEnding] = useState(false)
   const [undoing, setUndoing] = useState(false)
+  // Undo is held off for UNDO_GRACE_MS after every logged game; see above.
+  const [justLogged, setJustLogged] = useState(false)
+  const justLoggedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Scores past 21 are picked on a second pad instead of window.prompt.
   const [pastTarget, setPastTarget] = useState(false)
   // null means "not overridden yet" — the teams screen falls back to the
@@ -241,6 +254,13 @@ export function TableMode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(
+    () => () => {
+      if (justLoggedTimer.current) clearTimeout(justLoggedTimer.current)
+    },
+    [],
+  )
+
   const name = (id: string) => players.find((p) => p.id === id)?.displayName ?? '?'
 
   function changeTarget(next: number) {
@@ -262,6 +282,9 @@ export function TableMode({
       targetScore: target,
     }
     enqueue(item)
+    setJustLogged(true)
+    if (justLoggedTimer.current) clearTimeout(justLoggedTimer.current)
+    justLoggedTimer.current = setTimeout(() => setJustLogged(false), UNDO_GRACE_MS)
     setTable((t) => applyGame(t, winner, picked))
     setPicked([])
     goTo({ step: 'winner' })
@@ -270,7 +293,7 @@ export function TableMode({
   }
 
   async function undo() {
-    if (undoing) return
+    if (undoing || justLogged) return
     setError(null)
     setConfirmEnd(false)
     setUndoing(true)
@@ -562,7 +585,7 @@ export function TableMode({
         />
 
         <div className="mt-8 flex gap-2">
-          <Button tone="ghost" size="md" className="flex-1" onClick={undo} disabled={undoing}>
+          <Button tone="ghost" size="md" className="flex-1" onClick={undo} disabled={undoing || justLogged}>
             {undoing ? 'Undoing…' : '↶ Undo last game'}
           </Button>
           <Button tone="ghost" size="md" className="flex-1" onClick={openTeamsEditor} disabled={undoing || ending}>
