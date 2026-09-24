@@ -111,7 +111,7 @@ Then verify:
 ### Every deploy after that
 
 The Vercel project is connected to the GitHub repo, so **merging to `main` deploys to production**. There's nothing to run by hand.
-Pull request branches don't get preview deployments: `ignoreCommand` in `vercel.ts` skips every build that isn't production. A preview has no `DATABASE_URL` and would fail anyway, and CI already builds, typechecks, lints and tests every PR.
+Pull request branches don't get preview deployments: `git.deploymentEnabled` in `vercel.ts` turns deployments off for every branch but `main`. A preview has no `DATABASE_URL` and would fail anyway, and CI already builds, typechecks, lints and tests every PR.
 To deploy without merging (a hotfix, or a redeploy), `vercel --prod` from an up-to-date `main` still works.
 
 ### Schema migrations

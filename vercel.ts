@@ -10,10 +10,12 @@ export const config: VercelConfig = {
   // builds skip it: DATABASE_URL is production-only, and a preview must never
   // alter the production schema anyway.
   buildCommand: 'if [ "$VERCEL_ENV" = "production" ]; then npm run migrate; fi && next build',
-  // Only production builds from Git. A preview has no DATABASE_URL (it's
-  // production-only), so it fails collecting page data and puts a red check
-  // on every PR, while CI already builds, typechecks, lints and tests each
-  // one. Exit 0 skips the build, 1 runs it.
-  ignoreCommand: '[ "$VERCEL_ENV" != "production" ]',
+  // Only `main` deploys from Git. A preview would have no DATABASE_URL (it's
+  // production-only) and fail collecting page data, a red check on every PR,
+  // while CI already builds, typechecks, lints and tests each one. Decided by
+  // branch name, not an ignoreCommand: one reading $VERCEL_ENV skipped the
+  // production build too. `**`, not `*`, so branches with a slash
+  // (claude/...) match; a branch matching both rules deploys (true wins).
+  git: { deploymentEnabled: { '**': false, main: true } },
   crons: [{ path: '/api/cron/backup', schedule: '0 9 * * *' }],
 }
