@@ -119,6 +119,9 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
           aria-labelledby={headingId}
           tabIndex={-1}
           onClick={onClose}
+          // Always die's colours: the Shields bulletin is a beer die bit, and
+          // its type was checked against die's red panel, not spikeball's yellow.
+          data-sport="beer_die"
           className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-gradient-to-br from-panel-glow via-panel to-panel-shade px-6 text-center"
           initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
           animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
@@ -139,8 +142,8 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
             {words.map((word, i) => (
               <span
                 key={word}
-                // Last word gold, the rest cream: both clear 4.5:1 on every
-                // stop of the cardinal gradient behind them.
+                // Last word in the accent, the rest in the foreground: both
+                // clear 4.5:1 on every stop of die's panel gradient behind them.
                 className={`block ${i === words.length - 1 ? 'text-accent' : 'text-fg'}`}
               >
                 {word}

@@ -1,11 +1,14 @@
-import { afterAll, afterEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { assertLocalDatabase } from '@/lib/db-guard'
 import { sql } from '@/lib/db'
+import { assertNoOpenNights } from './helpers/no-open-nights'
 import { setTeams } from '@/lib/session'
 
 // This file inserts and updates real session/game rows. Refuse to load at
 // all unless the database is local.
 assertLocalDatabase()
+
+beforeAll(assertNoOpenNights)
 
 const createdSessionIds: string[] = []
 

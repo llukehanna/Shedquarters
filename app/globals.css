@@ -1,23 +1,94 @@
 @import 'tailwindcss';
 
+/*
+ * Two sports, two looks, one set of names. Each sport's colours are plain
+ * variables on its `data-sport` scope (the root layout puts the phone's sport
+ * on <html>), and the inline theme block below points Tailwind's colour tokens at them, so
+ * `bg-panel` or `text-accent/70` is whatever the nearest `data-sport` says.
+ * A player's page is `both` and re-scopes each sport's card inside it.
+ */
+:root, [data-sport='beer_die'] {
+  /* Old Glory: Old Glory Blue #0A3161 and Old Glory Red #B31942, the flag's own. */
+  --ground: #050c1f;
+  --ground-glow: #0a3161;
+  --ground-deep: #030814;
+  --panel: #b31942;
+  --panel-hi: #c41e4a;
+  --panel-deep: #8a1030;
+  --panel-glow: #d42452;
+  --panel-shade: #7d0f2b;
+  --panel-ink: #ffffff;
+  --panel-sub: #ffd9e2;
+  --panel-edge: rgb(255 255 255 / 0.6);
+  --accent: #ffffff;
+  --accent-ink: #0a3161;
+  --fg: #f5f7fc;
+  --muted: #9fabc8;
+  --faint: #6b7896;
+  --sheet-top: #0c1a3a;
+  --sheet-bottom: #050c1f;
+}
+
+[data-sport='spikeball'] {
+  /* Ball Yellow & Black: the ball's own colours. Panels are yellow, so their text is black. */
+  --ground: #0a0a0a;
+  --ground-glow: #17170f;
+  --ground-deep: #050505;
+  --panel: #ffd400;
+  --panel-hi: #ffe033;
+  --panel-deep: #f2c200;
+  --panel-glow: #ffe54d;
+  --panel-shade: #e0b400;
+  --panel-ink: #111111;
+  --panel-sub: #3d3500;
+  --panel-edge: rgb(0 0 0 / 0.2);
+  --accent: #ffd400;
+  --accent-ink: #111111;
+  --fg: #f5f5ef;
+  --muted: #a3a39a;
+  --faint: #6b6b62;
+  --sheet-top: #1a1a14;
+  --sheet-bottom: #0a0a0a;
+}
+
+[data-sport='both'] {
+  /* Neither sport: a neutral near-black. Panels (unused at this level) stay die's. */
+  --ground: #0b0b0e;
+  --ground-glow: #10131c;
+  --ground-deep: #070709;
+  --accent: #ffffff;
+  --accent-ink: #0b0b0e;
+  --fg: #f4f4f6;
+  --muted: #a0a0aa;
+  --faint: #6a6a74;
+  --sheet-top: #16161c;
+  --sheet-bottom: #0b0b0e;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-ground-glow: var(--ground-glow);
+  --color-ground-deep: var(--ground-deep);
+  --color-panel: var(--panel);
+  --color-panel-hi: var(--panel-hi);
+  --color-panel-deep: var(--panel-deep);
+  --color-panel-glow: var(--panel-glow);
+  --color-panel-shade: var(--panel-shade);
+  --color-panel-ink: var(--panel-ink);
+  --color-panel-sub: var(--panel-sub);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-sheet-top: var(--sheet-top);
+  --color-sheet-bottom: var(--sheet-bottom);
+}
+
+/* The same in both sports: green is up, red is down. */
 @theme {
-  --color-ground: #0b0304;
-  --color-ground-glow: #170507;
-  --color-ground-deep: #070203;
-  --color-panel: #990000;
-  --color-panel-hi: #b30000;
-  --color-panel-deep: #6e0000;
-  --color-accent: #ffcc00;
-  --color-accent-ink: #3a0000;
-  --color-fg: #f7eedc;
-  --color-muted: #9e8570;
-  --color-faint: #5e4a3c;
   --color-up: #4ade80;
   --color-down: #ff6b6b;
-  --color-panel-glow: #c40000;
-  --color-panel-shade: #8a0000;
-  --color-sheet-top: #1f0709;
-  --color-sheet-bottom: #0d0304;
 }
 
 /* `inline` so the utilities reference the next/font variables set on <html>. */
@@ -30,7 +101,7 @@
 @layer base {
   html {
     color-scheme: dark;
-    background: var(--color-ground);
+    background: var(--ground);
     /* Scrolling to a new page's top must stop below the status bar, not under it. */
     scroll-padding-top: env(safe-area-inset-top);
   }
@@ -41,12 +112,12 @@
     padding-top: env(safe-area-inset-top);
     background: radial-gradient(
       120% 60% at 50% 0%,
-      var(--color-ground-glow) 0%,
-      var(--color-ground) 45%,
-      var(--color-ground-deep) 100%
+      var(--ground-glow) 0%,
+      var(--ground) 45%,
+      var(--ground-deep) 100%
     );
     background-attachment: fixed;
-    color: var(--color-fg);
+    color: var(--fg);
     font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -73,17 +144,18 @@
   font-size: 12.5px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--muted);
 }
 
 /* The standard dark card: a faint wash of the foreground, a faint accent hairline. */
 @utility surface {
-  background: color-mix(in srgb, var(--color-fg) 4.5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
+  background: color-mix(in srgb, var(--fg) 4.5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 /* The team card: the holding team, #1, a player's hero. */
 @utility panel {
-  background: linear-gradient(150deg, var(--color-panel-hi), var(--color-panel-deep));
-  border: 1.5px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
+  background: linear-gradient(150deg, var(--panel-hi), var(--panel-deep));
+  border: 1.5px solid var(--panel-edge);
+  color: var(--panel-ink);
 }

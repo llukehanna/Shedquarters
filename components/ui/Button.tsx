@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react'
 
 const TONES = {
   accent: 'bg-accent text-accent-ink',
-  panel: 'bg-gradient-to-br from-panel-glow to-panel-shade text-white ring-1 ring-inset ring-accent/35',
+  panel: 'bg-gradient-to-br from-panel-glow to-panel-shade text-panel-ink ring-1 ring-inset ring-panel-ink/35',
   ghost: 'border border-accent/15 text-fg not-italic',
 } as const
 

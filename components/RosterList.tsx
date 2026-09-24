@@ -183,7 +183,7 @@ export function RosterList({ players }: { players: Player[] }) {
               </div>
               <p className="mt-1 text-[11px] text-muted">Up to {MAX_LENGTH} characters.</p>
               {nameError && (
-                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
+                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
                   {nameError}
                 </p>
               )}
@@ -256,7 +256,7 @@ export function RosterList({ players }: { players: Player[] }) {
               </div>
               <p className="mt-1 text-[11px] text-muted">Up to {MAX_LENGTH} characters each.</p>
               {nickError && (
-                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
+                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
                   {nickError}
                 </p>
               )}

@@ -1,7 +1,8 @@
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { assertLocalDatabase } from '@/lib/db-guard'
 import { sql } from '@/lib/db'
+import { assertNoOpenNights } from './helpers/no-open-nights'
 import { startSession, logGame, voidLastGame, setTeams, getActiveTable, getLiveSports, endSession } from '@/lib/session'
 import { getRatings, getRatingDeltas } from '@/lib/ratings-cache'
 import { getGames } from '@/lib/queries'
@@ -9,6 +10,8 @@ import { getGames } from '@/lib/queries'
 // Inserts and deletes real sessions, games and players. Refuse to load at all
 // unless the database is local.
 assertLocalDatabase()
+
+beforeAll(assertNoOpenNights)
 
 const PREFIX = 'SpikeTest '
 const createdSessionIds: string[] = []

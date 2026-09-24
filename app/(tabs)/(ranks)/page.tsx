@@ -101,7 +101,7 @@ export default async function Ranks() {
           </p>
           <Link
             href="/table"
-            className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-panel-glow to-panel-shade font-display text-[23px] font-extrabold italic uppercase text-white ring-1 ring-inset ring-accent/35"
+            className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-panel-glow to-panel-shade font-display text-[23px] font-extrabold italic uppercase text-panel-ink ring-1 ring-inset ring-panel-ink/35"
           >
             Go to the table →
           </Link>

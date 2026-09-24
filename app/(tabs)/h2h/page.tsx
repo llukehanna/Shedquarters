@@ -57,12 +57,12 @@ export default async function HeadToHeadPage({
           {total > 0 ? (
             <>
               <div className="panel rounded-2xl p-4 text-center">
-                <p className="eyebrow text-accent">
+                <p className="eyebrow text-panel-sub">
                   {nameOf(a!)} vs {nameOf(b!)}
                 </p>
                 <p className="headline mt-1 text-[64px]">
                   {summary.wins}
-                  <span className="text-accent">–</span>
+                  <span className="text-panel-sub">–</span>
                   {summary.losses}
                 </p>
               </div>

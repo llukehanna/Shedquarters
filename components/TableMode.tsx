@@ -517,7 +517,7 @@ export function TableMode({
         {dead > 0 && (
           <div
             role="alert"
-            className="mb-2.5 rounded-xl border border-accent/50 bg-gradient-to-r from-panel-hi to-panel-deep px-3 py-2.5 text-[12.5px] leading-snug"
+            className="mb-2.5 rounded-xl border border-down/60 bg-down/20 px-3 py-2.5 text-[12.5px] leading-snug"
           >
             <span className="block font-display text-[15px] font-extrabold uppercase tracking-[0.04em]">
               {dead} game{dead > 1 ? 's' : ''} not recorded
@@ -538,7 +538,7 @@ export function TableMode({
         )}
 
         {error && (
-          <p role="alert" className="mb-2.5 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
+          <p role="alert" className="mb-2.5 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
             {error}
           </p>
         )}
@@ -717,7 +717,7 @@ export function TableMode({
         </p>
 
         {error && (
-          <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
+          <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
             {error}
           </p>
         )}

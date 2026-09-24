@@ -48,7 +48,7 @@ export default async function Roster({
       )}
 
       {duplicate && (
-        <p role="alert" className="mt-4 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
+        <p role="alert" className="mt-4 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
           &ldquo;{duplicate}&rdquo; is already on the roster — not added again.
         </p>
       )}

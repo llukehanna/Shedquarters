@@ -130,7 +130,7 @@ export function SessionSetup({ sport, players }: { sport: Sport; players: Player
       <TeamPicker players={players} size={size} holds={SPORT_RULES[sport].holds} picked={picked} onToggle={toggle} onClear={() => setPicked([])} />
 
       {error && (
-        <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
+        <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
           {error}
         </p>
       )}

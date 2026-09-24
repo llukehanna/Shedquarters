@@ -83,7 +83,7 @@ export function GateForm({ staleInvite = false }: { staleInvite?: boolean }) {
 
       <p role="status" aria-live="polite" className="min-h-[88px]">
         {message && (
-          <span className="block rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2.5 text-center text-[13px] leading-snug">
+          <span className="block rounded-xl border border-down/45 bg-down/15 px-3 py-2.5 text-center text-[13px] leading-snug">
             <span className="block font-display text-[21px] font-extrabold uppercase">{message.title}</span>
             {message.body}
           </span>

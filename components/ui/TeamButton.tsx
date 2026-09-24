@@ -22,14 +22,14 @@ export function TeamButton({
       className={`relative block w-full overflow-hidden rounded-2xl px-4 py-4 text-left ${holding ? 'panel' : 'surface'}`}
     >
       {ghost && (
-        <span aria-hidden className="headline absolute top-1 right-3 text-[90px] leading-none text-accent/12">
+        <span aria-hidden className={`headline absolute top-1 right-3 text-[90px] leading-none ${holding ? 'text-panel-ink/12' : 'text-accent/12'}`}>
           {ghost}
         </span>
       )}
-      <span className={`eyebrow relative block text-[11.5px] ${holding ? 'text-accent' : ''}`}>{label}</span>
+      <span className={`eyebrow relative block text-[11.5px] ${holding ? 'text-panel-sub' : ''}`}>{label}</span>
       <span className="headline relative mt-1.5 block pr-10 text-[28px] leading-[1.08]">{names.join(' · ')}</span>
       <span
-        className={`relative mt-3 block font-display text-[13px] font-extrabold uppercase tracking-[0.1em] ${holding ? 'text-accent' : 'text-fg'}`}
+        className={`relative mt-3 block font-display text-[13px] font-extrabold uppercase tracking-[0.1em] ${holding ? 'text-panel-ink' : 'text-fg'}`}
       >
         They won →
       </span>

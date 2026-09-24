@@ -49,7 +49,7 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
 
   if (confirming) {
     return (
-      <main className="panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
+      <main data-sport="beer_die" className="panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
         <Wordmark variant="stacked" />
         <div className="mt-auto">
           <h1 className="headline text-[44px]">
@@ -82,7 +82,7 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
   }
 
   return (
-    <main className="panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
+    <main data-sport="beer_die" className="panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
       <Wordmark variant="stacked" />
       <h1 className="headline mt-6 text-[44px]">
         Who <span className="text-accent">are you?</span>
