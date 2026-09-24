@@ -1,6 +1,6 @@
 import { sql } from '@/lib/db'
 import { winnerScore, isValidLoserScore } from '@/lib/domain/score'
-import { DEFAULT_SPORT, SPORT_RULES, isSport, isValidTarget, isValidTeamSize, type Sport } from '@/lib/domain/sport'
+import { DEFAULT_SPORT, SPORTS, SPORT_RULES, isSport, isValidTarget, isValidTeamSize, type Sport } from '@/lib/domain/sport'
 import type { LogGameInput } from '@/lib/types'
 
 export type TableState = {
@@ -15,10 +15,16 @@ export type TableState = {
   targetScore: number
 }
 
-export async function getActiveTable(): Promise<TableState | null> {
+/**
+ * This sport's open night, if there is one. A beer die night and a spikeball
+ * night can run at the same time (`sessions_one_open_per_sport` allows one of
+ * each), so the sport has to be asked for.
+ */
+export async function getActiveTable(sport: Sport): Promise<TableState | null> {
   const [s] = await sql`
     select id, holders, challengers, game_type, target_score from sessions
-    where ended_at is null order by started_at desc limit 1
+    where ended_at is null and game_type = ${sport}
+    order by started_at desc limit 1
   `
   if (!s || !s.holders || !s.challengers) return null
 
@@ -51,6 +57,13 @@ export async function getActiveTable(): Promise<TableState | null> {
   }
 }
 
+/** The sports with a night going right now, in `SPORTS` order. */
+export async function getLiveSports(): Promise<Sport[]> {
+  const rows = await sql`select distinct game_type from sessions where ended_at is null`
+  const live = new Set(rows.map((r) => r.game_type as string))
+  return SPORTS.filter((s) => live.has(s))
+}
+
 function sameRoster(a: string[], b: string[]): boolean {
   return a.length === b.length && [...a].sort().join() === [...b].sort().join()
 }
@@ -78,12 +91,20 @@ export async function startSession(
 
   assertDistinct(holders, challengers)
   const teamSize = holders.length
-  const [row] = await sql`
-    insert into sessions (holders, challengers, team_size, game_type, target_score)
-    values (${holders}::uuid[], ${challengers}::uuid[], ${teamSize}, ${gameType}, ${targetScore})
-    returning id
-  `
-  return row.id as string
+  try {
+    const [row] = await sql`
+      insert into sessions (holders, challengers, team_size, game_type, target_score)
+      values (${holders}::uuid[], ${challengers}::uuid[], ${teamSize}, ${gameType}, ${targetScore})
+      returning id
+    `
+    return row.id as string
+  } catch (e) {
+    // Someone else started this sport's night first (two phones, one table).
+    if (isUniqueViolation(e, 'sessions_one_open_per_sport')) {
+      throw new Error(`${SPORT_RULES[gameType].name} night already running`)
+    }
+    throw e
+  }
 }
 
 export async function logGame(input: LogGameInput): Promise<void> {
@@ -277,8 +298,10 @@ const MAX_FIELD_LENGTH = 40
 /** Postgres SQLSTATE for "unique_violation" (see `errcodes.txt`). */
 const UNIQUE_VIOLATION = '23505'
 
-function isUniqueViolation(err: unknown): boolean {
-  return typeof err === 'object' && err !== null && 'code' in err && err.code === UNIQUE_VIOLATION
+/** A unique-constraint hit, optionally on one named constraint (index) only. */
+function isUniqueViolation(err: unknown, constraint?: string): boolean {
+  if (typeof err !== 'object' || err === null || !('code' in err) || err.code !== UNIQUE_VIOLATION) return false
+  return constraint === undefined || ('constraint_name' in err && err.constraint_name === constraint)
 }
 
 /**

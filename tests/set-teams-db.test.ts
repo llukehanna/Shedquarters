@@ -1,11 +1,14 @@
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { assertLocalDatabase } from '@/lib/db-guard'
 import { sql } from '@/lib/db'
+import { assertNoOpenNights } from './helpers/no-open-nights'
 import { setTeams } from '@/lib/session'
 
 // This file inserts and updates real session/game rows. Refuse to load at
 // all unless the database is local.
 assertLocalDatabase()
+
+beforeAll(assertNoOpenNights)
 
 const createdSessionIds: string[] = []
 
@@ -38,6 +41,14 @@ async function sessionRow(id: string) {
   const [row] = await sql`select holders, challengers, team_size from sessions where id = ${id}`
   return row as { holders: string[]; challengers: string[]; team_size: number }
 }
+
+// One open night per sport is a database rule, so each test's night is closed
+// once the test is done with it rather than all of them at the end.
+afterEach(async () => {
+  if (createdSessionIds.length > 0) {
+    await sql`update sessions set ended_at = now() where id = any(${createdSessionIds}::uuid[]) and ended_at is null`
+  }
+})
 
 afterAll(async () => {
   if (createdSessionIds.length > 0) {

@@ -11,24 +11,24 @@ import type { Badge } from '@/lib/domain/badges'
  * yet" state: a blank shelf on a profile would read as a scoreboard saying
  * you are bad at this, which is not the joke.
  */
-export function PlayerBadges({ badges }: { badges: Badge[] }) {
+export function PlayerBadges({ badges, title = 'Badges' }: { badges: Badge[]; title?: string }) {
   const views = badgeViews(badges)
   if (views.length === 0) return null
 
   return (
-    <section className="mt-5">
-      <h2 className="eyebrow mb-2">Badges</h2>
+    <section className="mt-3">
+      <h2 className="eyebrow mb-2">{title}</h2>
       <ul className="surface rounded-2xl px-3">
         {views.map((v) => (
           <li
             key={v.kind}
-            className="flex items-start gap-3 border-b border-gold/8 py-2.5 last:border-b-0"
+            className="flex items-start gap-3 border-b border-accent/8 py-2.5 last:border-b-0"
           >
             {/* min-width, not a fixed width: the patches line up at the
                 common case but the longest name plus a two-digit tally
                 ("Heartbreaker ×12") is wider than any tidy fixed box, and
-                the text must never run through the gold hairline. */}
-            <span className="flex min-w-[104px] shrink-0 items-center justify-center gap-1 rounded-[4px] border border-gold/45 bg-gold/10 px-2 py-[3px] font-display text-[11px] font-extrabold tracking-[0.08em] text-gold uppercase">
+                the text must never run through the accent hairline. */}
+            <span className="flex min-w-[104px] shrink-0 items-center justify-center gap-1 rounded-[4px] border border-accent/45 bg-accent/10 px-2 py-[3px] font-display text-[11px] font-extrabold tracking-[0.08em] text-accent uppercase">
               <span>{v.name}</span>
               {v.count !== null && <span className="font-mono">{v.count}</span>}
             </span>

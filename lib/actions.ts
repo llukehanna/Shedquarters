@@ -33,15 +33,30 @@ async function gate(): Promise<void> {
   }
 }
 
+export type StartSessionResult = { ok: true; id: string } | { ok: false; reason: 'already-running' }
+
+/**
+ * Returns rather than throws when this sport's night is already going: a
+ * thrown server-action error reaches the phone only as an opaque digest, and
+ * this is the one failure worth explaining (someone else just started it).
+ */
 export async function startSession(
   holders: string[],
   challengers: string[],
   opts: session.StartOptions = {},
-): Promise<string> {
+): Promise<StartSessionResult> {
   await gate()
-  const id = await session.startSession(holders, challengers, opts)
-  revalidatePath('/table')
-  return id
+  try {
+    const id = await session.startSession(holders, challengers, opts)
+    revalidatePath('/table')
+    return { ok: true, id }
+  } catch (e) {
+    if (e instanceof Error && e.message.endsWith('night already running')) {
+      revalidatePath('/table')
+      return { ok: false, reason: 'already-running' }
+    }
+    throw e
+  }
 }
 
 export async function logGame(input: LogGameInput): Promise<void> {

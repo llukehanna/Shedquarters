@@ -32,7 +32,9 @@ describe('assembleDump', () => {
     playerIds = rows.map((r) => r.id as string)
 
     const [session] = await sql`
-      insert into sessions (holders, challengers) values (${playerIds}, ${playerIds})
+      -- Already ended: an open night would count against the one-open-night-
+      -- per-sport rule, and the night tests in spikeball-db.test.ts run in parallel.
+      insert into sessions (holders, challengers, ended_at) values (${playerIds}, ${playerIds}, now())
       returning id
     `
     sessionId = session.id as string

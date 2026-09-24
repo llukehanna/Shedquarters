@@ -6,7 +6,6 @@ import {
   isValidTarget,
   isValidTeamSize,
   parseSport,
-  withSport,
 } from '@/lib/domain/sport'
 
 describe('SPORT_RULES', () => {
@@ -72,18 +71,5 @@ describe('isValidTeamSize', () => {
     expect(isValidTeamSize('beer_die', 3)).toBe(true)
     expect(isValidTeamSize('beer_die', 2)).toBe(true)
     expect(isValidTeamSize('beer_die', 4)).toBe(false)
-  })
-})
-
-describe('withSport', () => {
-  it('leaves beer die URLs exactly as they were', () => {
-    expect(withSport('/', 'beer_die')).toBe('/')
-    expect(withSport('/h2h?a=p1', 'beer_die')).toBe('/h2h?a=p1')
-  })
-
-  it('adds the sport as a query param, keeping any already there', () => {
-    expect(withSport('/', 'spikeball')).toBe('/?sport=spikeball')
-    expect(withSport('/players/p1', 'spikeball')).toBe('/players/p1?sport=spikeball')
-    expect(withSport('/h2h?a=p1', 'spikeball')).toBe('/h2h?a=p1&sport=spikeball')
   })
 })

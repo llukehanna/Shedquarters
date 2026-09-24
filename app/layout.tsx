@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Barlow_Condensed, Inter_Tight, JetBrains_Mono } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import { ServiceWorker } from '@/components/ServiceWorker'
+import { currentSport } from '@/lib/sport-cookie'
 import './globals.css'
 
 // Barlow Condensed is not a variable font, so each weight and style used must be listed.
@@ -42,14 +43,20 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
 }
 
-export const viewport: Viewport = {
-  themeColor: '#0b0304',
-  colorScheme: 'dark',
+// The browser chrome takes the ground colour of the sport this phone is on.
+const THEME_COLOR = { beer_die: '#050c1f', spikeball: '#0a0a0a' } as const
+
+export async function generateViewport(): Promise<Viewport> {
+  return { themeColor: THEME_COLOR[await currentSport()], colorScheme: 'dark' }
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({ children }: LayoutProps<'/'>) {
+  // `data-sport` picks the theme (app/globals.css). It is read from the cookie
+  // here, on every request, which is why the Die │ Spike pill does a full
+  // navigation rather than a client-side one: this layout has to re-render.
+  const sport = await currentSport()
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" data-sport={sport} className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
         <Providers>{children}</Providers>
         <ServiceWorker />

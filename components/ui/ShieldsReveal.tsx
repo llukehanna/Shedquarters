@@ -119,7 +119,10 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
           aria-labelledby={headingId}
           tabIndex={-1}
           onClick={onClose}
-          className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-gradient-to-br from-cardinal-glow via-cardinal to-cardinal-shade px-6 text-center"
+          // Always die's colours: the Shields bulletin is a beer die bit, and
+          // its type was checked against die's red panel, not spikeball's yellow.
+          data-sport="beer_die"
+          className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-gradient-to-br from-panel-glow via-panel to-panel-shade px-6 text-center"
           initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
           animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
@@ -131,7 +134,7 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
           // Measured on a production build at 224-247ms over six dismissals.
           transition={reduced ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         >
-          <p aria-hidden className="headline text-[15px] tracking-[0.3em] text-gold">
+          <p aria-hidden className="headline text-[15px] tracking-[0.3em] text-accent">
             Shed bulletin
           </p>
 
@@ -139,16 +142,16 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
             {words.map((word, i) => (
               <span
                 key={word}
-                // Last word gold, the rest cream: both clear 4.5:1 on every
-                // stop of the cardinal gradient behind them.
-                className={`block ${i === words.length - 1 ? 'text-gold' : 'text-cream'}`}
+                // Last word in the accent, the rest in the foreground: both
+                // clear 4.5:1 on every stop of die's panel gradient behind them.
+                className={`block ${i === words.length - 1 ? 'text-accent' : 'text-fg'}`}
               >
                 {word}
               </span>
             ))}
           </p>
 
-          <p className="mt-5 max-w-[15rem] text-[13px] leading-snug text-cream/85">
+          <p className="mt-5 max-w-[15rem] text-[13px] leading-snug text-fg/85">
             Somebody had to say it.
           </p>
 
@@ -161,7 +164,7 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
               e.stopPropagation()
               onClose()
             }}
-            className="mt-8 flex min-h-11 items-center justify-center rounded-xl border border-cream/55 px-6 font-display text-[15px] font-bold tracking-[0.12em] text-cream uppercase"
+            className="mt-8 flex min-h-11 items-center justify-center rounded-xl border border-fg/55 px-6 font-display text-[15px] font-bold tracking-[0.12em] text-fg uppercase"
           >
             Fine
           </button>

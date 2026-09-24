@@ -49,14 +49,14 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
 
   if (confirming) {
     return (
-      <main className="cardinal-panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
+      <main data-sport="beer_die" className="panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
         <Wordmark variant="stacked" />
         <div className="mt-auto">
           <h1 className="headline text-[44px]">
-            You&rsquo;re <span className="text-gold">{confirming.displayName}</span>?
+            You&rsquo;re <span className="text-accent">{confirming.displayName}</span>?
           </h1>
           {confirming.claimed && (
-            <p className="mt-3 text-[14px] leading-snug text-cream/80">
+            <p className="mt-3 text-[14px] leading-snug text-fg/80">
               Already claimed on another phone. Confirming moves it to this one.
             </p>
           )}
@@ -64,7 +64,7 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
             type="button"
             onClick={() => claim(confirming)}
             disabled={pending}
-            className="mt-6 flex min-h-14 w-full items-center justify-center rounded-xl bg-gold font-display text-[23px] font-extrabold uppercase italic text-gold-ink disabled:opacity-40"
+            className="mt-6 flex min-h-14 w-full items-center justify-center rounded-xl bg-accent font-display text-[23px] font-extrabold uppercase italic text-accent-ink disabled:opacity-40"
           >
             {pending ? 'One sec…' : `Yes, I'm ${confirming.displayName}`}
           </button>
@@ -72,7 +72,7 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
             type="button"
             onClick={() => setConfirming(null)}
             disabled={pending}
-            className="mt-2 flex min-h-11 w-full items-center justify-center font-display text-[15px] font-bold uppercase tracking-[0.12em] text-cream/70"
+            className="mt-2 flex min-h-11 w-full items-center justify-center font-display text-[15px] font-bold uppercase tracking-[0.12em] text-fg/70"
           >
             Not me
           </button>
@@ -82,10 +82,10 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
   }
 
   return (
-    <main className="cardinal-panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
+    <main data-sport="beer_die" className="panel mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full max-w-md flex-col px-4 pt-10 pb-8">
       <Wordmark variant="stacked" />
       <h1 className="headline mt-6 text-[44px]">
-        Who <span className="text-gold">are you?</span>
+        Who <span className="text-accent">are you?</span>
       </h1>
 
       <div className="mt-5 grid grid-cols-2 gap-2">
@@ -97,19 +97,19 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
             // Claimed names stay fully tappable — reclaiming a name from a new
             // phone, a reinstall, or a borrowed phone is a feature, not an
             // error state — so this is a lighter treatment, not a disabled
-            // one. text-cream/70 (not /40) keeps it above AA on the outdoor
+            // one. text-fg/70 (not /40) keeps it above AA on the outdoor
             // screen this app runs on, and the "claimed" caption is the
             // note the grid itself has to carry (spec §2) rather than only
             // showing up after the tap, on the confirmation screen.
             className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border px-2 text-center font-display font-bold uppercase ${
-              p.claimed ? 'border-cream/15 text-cream/70' : 'border-gold/45 text-cream'
+              p.claimed ? 'border-fg/15 text-fg/70' : 'border-accent/45 text-fg'
             }`}
           >
             <span className="text-[18px]">{p.displayName}</span>
             {p.claimed && (
               // Small, normal-weight text needs more contrast than the bold
               // 18px name above to clear AA — /85 rather than the name's /70.
-              <span className="font-body text-[11px] font-normal normal-case tracking-normal text-cream/85">
+              <span className="font-body text-[11px] font-normal normal-case tracking-normal text-fg/85">
                 claimed
               </span>
             )}
@@ -117,8 +117,8 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
         ))}
       </div>
 
-      <div className="mt-6 border-t border-gold/20 pt-4">
-        <label htmlFor="who-name" className="eyebrow text-gold">
+      <div className="mt-6 border-t border-accent/20 pt-4">
+        <label htmlFor="who-name" className="eyebrow text-accent">
           Not here? Add yourself
         </label>
         <input
@@ -130,10 +130,10 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
           }}
           autoComplete="off"
           placeholder="Your name"
-          className="mt-2 min-h-12 w-full rounded-[10px] border border-cream/20 bg-black/25 px-3 text-[17px] text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none"
+          className="mt-2 min-h-12 w-full rounded-[10px] border border-fg/20 bg-black/25 px-3 text-[17px] text-fg placeholder:text-fg/40 focus:border-accent focus:outline-none"
         />
         {error && (
-          <p role="alert" className="mt-2 text-[13px] leading-snug text-gold">
+          <p role="alert" className="mt-2 text-[13px] leading-snug text-accent">
             {error}
           </p>
         )}
@@ -141,7 +141,7 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
           type="button"
           onClick={addMe}
           disabled={pending || name.trim().length === 0}
-          className="mt-2 flex min-h-12 w-full items-center justify-center rounded-xl border border-gold/45 font-display text-[17px] font-extrabold uppercase italic text-cream disabled:opacity-40"
+          className="mt-2 flex min-h-12 w-full items-center justify-center rounded-xl border border-accent/45 font-display text-[17px] font-extrabold uppercase italic text-fg disabled:opacity-40"
         >
           Add me as a guest
         </button>
@@ -151,7 +151,7 @@ export function WhoAreYou({ players }: { players: ClaimablePlayer[] }) {
         type="button"
         onClick={() => router.replace('/')}
         disabled={pending}
-        className="mt-6 flex min-h-11 w-full items-center justify-center font-display text-[13px] font-bold uppercase tracking-[0.14em] text-cream/60"
+        className="mt-6 flex min-h-11 w-full items-center justify-center font-display text-[13px] font-bold uppercase tracking-[0.14em] text-fg/60"
       >
         Skip for now
       </button>
