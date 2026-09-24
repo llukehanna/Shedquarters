@@ -117,6 +117,14 @@ Preview builds skip it: `DATABASE_URL` is production-only, and a preview must ne
 
 To run it by hand anyway: `DATABASE_URL='<the Neon connection string>' npm run migrate`.
 
+`lib/schema.sql` is split on `;` by `scripts/migrate.ts`, so a comment in it must never contain a semicolon.
+
+An index can refuse to build over rows that break it. `sessions_one_open_per_sport` fails if production has two open nights of the same sport, and the deploy then stays on the previous version. Before shipping it, end any stray open night, and check with:
+
+```sql
+select game_type, count(*) from sessions where ended_at is null group by 1;  -- one row per sport, at most
+```
+
 ### After every deploy
 
 ```bash

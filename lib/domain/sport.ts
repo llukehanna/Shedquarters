@@ -66,12 +66,3 @@ export function isValidTarget(sport: Sport, target: unknown): target is number {
 export function isValidTeamSize(sport: Sport, size: unknown): size is TeamSize {
   return (size === 2 || size === 3) && SPORT_RULES[sport].teamSizes.includes(size)
 }
-
-/**
- * `path` with `?sport=` set for anything other than the default, so beer die
- * URLs look exactly as they did before there was a second sport.
- */
-export function withSport(path: string, sport: Sport): string {
-  if (sport === DEFAULT_SPORT) return path
-  return `${path}${path.includes('?') ? '&' : '?'}sport=${sport}`
-}

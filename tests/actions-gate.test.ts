@@ -66,7 +66,7 @@ describe('the action gate', () => {
   it('lets a signed-in phone through to the real work', async () => {
     requirePasscode.mockResolvedValue(undefined)
     startSession.mockResolvedValue('session-1')
-    await expect(actions.startSession(['a'], ['b'])).resolves.toBe('session-1')
+    await expect(actions.startSession(['a'], ['b'])).resolves.toEqual({ ok: true, id: 'session-1' })
     expect(startSession).toHaveBeenCalledWith(['a'], ['b'], {})
   })
 })
@@ -84,5 +84,22 @@ describe('the action gate only redirects a signed-out phone', () => {
   it('still redirects when the session really is unauthorized', async () => {
     requirePasscode.mockRejectedValue(new Error('unauthorized'))
     await expect(actions.startSession(['a'], ['b'])).rejects.toThrow('NEXT_REDIRECT:/gate')
+  })
+})
+
+describe('startSession when the night is already going', () => {
+  it('says so as a value, since a thrown error reaches the phone only as a digest', async () => {
+    requirePasscode.mockResolvedValue(undefined)
+    startSession.mockRejectedValue(new Error('Spikeball night already running'))
+    await expect(actions.startSession(['a'], ['b'], { gameType: 'spikeball' })).resolves.toEqual({
+      ok: false,
+      reason: 'already-running',
+    })
+  })
+
+  it('still throws anything else', async () => {
+    requirePasscode.mockResolvedValue(undefined)
+    startSession.mockRejectedValue(new Error('Spikeball is 2 a side'))
+    await expect(actions.startSession(['a'], ['b'])).rejects.toThrow('Spikeball is 2 a side')
   })
 })

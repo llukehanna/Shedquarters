@@ -1,14 +1,17 @@
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { randomUUID } from 'node:crypto'
 import { assertLocalDatabase } from '@/lib/db-guard'
 import { sql } from '@/lib/db'
-import { startSession, logGame, voidLastGame, setTeams, getActiveTable } from '@/lib/session'
+import { assertNoOpenNights } from './helpers/no-open-nights'
+import { startSession, logGame, voidLastGame, setTeams, getActiveTable, getLiveSports, endSession } from '@/lib/session'
 import { getRatings, getRatingDeltas } from '@/lib/ratings-cache'
 import { getGames } from '@/lib/queries'
 
 // Inserts and deletes real sessions, games and players. Refuse to load at all
 // unless the database is local.
 assertLocalDatabase()
+
+beforeAll(assertNoOpenNights)
 
 const PREFIX = 'SpikeTest '
 const createdSessionIds: string[] = []
@@ -99,10 +102,7 @@ describe('a spikeball night', () => {
     const [a, b, c, d, e, f] = await makePlayers(6)
     const id = await start([a, b], [c, d], { gameType: 'spikeball', targetScore: 15 })
 
-    // getActiveTable() reads the newest open night, and other DB test files
-    // run in parallel: date this one ahead so it is the newest regardless.
-    await sql`update sessions set started_at = now() + interval '1 day' where id = ${id}`
-    const table = await getActiveTable()
+    const table = await getActiveTable('spikeball')
     expect(table).toMatchObject({ sessionId: id, gameType: 'spikeball', targetScore: 15 })
 
     // To 11, holders win 11–4. The night's target follows the game.
@@ -229,5 +229,42 @@ describe('a spikeball night', () => {
     ])
 
     await sql`update sessions set ended_at = now() where id = ${id}`
+  })
+})
+
+// Every night in this file is opened and closed here, one test at a time, and
+// this is the only test file that opens a night at all: at most one open night
+// per sport is a database rule, so two files doing it in parallel would collide.
+describe('one live night per sport', () => {
+  it('runs a die night and a spikeball night side by side', async () => {
+    const [a, b, c, d, e, f, g, h, i, j] = await makePlayers(10)
+    const die = await start([a, b, c], [d, e, f])
+    const spike = await start([g, h], [i, j], { gameType: 'spikeball', targetScore: 15 })
+
+    expect(await getActiveTable('beer_die')).toMatchObject({ sessionId: die, gameType: 'beer_die' })
+    expect(await getActiveTable('spikeball')).toMatchObject({ sessionId: spike, gameType: 'spikeball' })
+    expect(await getLiveSports()).toEqual(['beer_die', 'spikeball'])
+
+    // Ending one leaves the other exactly where it was.
+    await endSession(die)
+    expect(await getActiveTable('beer_die')).toBeNull()
+    expect(await getActiveTable('spikeball')).toMatchObject({ sessionId: spike })
+    expect(await getLiveSports()).toEqual(['spikeball'])
+
+    await endSession(spike)
+    expect(await getLiveSports()).toEqual([])
+  })
+
+  it('refuses a second night of the same sport', async () => {
+    const [a, b, c, d, e, f, g, h] = await makePlayers(8)
+    const first = await start([a, b], [c, d], { gameType: 'spikeball', targetScore: 15 })
+
+    // Through start(), so a regression that lets it through still gets cleaned up.
+    await expect(start([e, f], [g, h], { gameType: 'spikeball', targetScore: 11 })).rejects.toThrow(
+      'Spikeball night already running',
+    )
+    expect(await getActiveTable('spikeball')).toMatchObject({ sessionId: first })
+
+    await endSession(first)
   })
 })

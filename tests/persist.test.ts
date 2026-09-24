@@ -71,32 +71,32 @@ describe('isStoredSetupState', () => {
 
 describe('setup state round trip', () => {
   it('saves and loads the picked list and size', () => {
-    expect(loadSetupState()).toBeNull()
-    saveSetupState({ picked: ['x1', 'x2'], size: 2 })
-    expect(loadSetupState()).toEqual({ picked: ['x1', 'x2'], size: 2 })
+    expect(loadSetupState('beer_die')).toBeNull()
+    saveSetupState('beer_die', { picked: ['x1', 'x2'], size: 2 })
+    expect(loadSetupState('beer_die')).toEqual({ picked: ['x1', 'x2'], size: 2, sport: 'beer_die' })
   })
 
   it('clearSetupState removes it', () => {
-    saveSetupState({ picked: ['x1'], size: 3 })
-    clearSetupState()
-    expect(loadSetupState()).toBeNull()
+    saveSetupState('beer_die', { picked: ['x1'], size: 3 })
+    clearSetupState('beer_die')
+    expect(loadSetupState('beer_die')).toBeNull()
   })
 
   it('recovers to null for non-JSON garbage', () => {
     window.localStorage.setItem('house-ladder-setup', 'not-json{{{')
-    expect(loadSetupState()).toBeNull()
+    expect(loadSetupState('beer_die')).toBeNull()
   })
 
   it('recovers to null for valid JSON of the wrong shape', () => {
     window.localStorage.setItem('house-ladder-setup', '{"picked":["a"]}')
-    expect(loadSetupState()).toBeNull()
+    expect(loadSetupState('beer_die')).toBeNull()
   })
 
   it('does not throw with no window (server context)', () => {
     Reflect.deleteProperty(globalThis, 'window')
-    expect(() => saveSetupState({ picked: ['a'], size: 3 })).not.toThrow()
-    expect(loadSetupState()).toBeNull()
-    expect(() => clearSetupState()).not.toThrow()
+    expect(() => saveSetupState('beer_die', { picked: ['a'], size: 3 })).not.toThrow()
+    expect(loadSetupState('beer_die')).toBeNull()
+    expect(() => clearSetupState('beer_die')).not.toThrow()
   })
 })
 
@@ -330,8 +330,22 @@ describe('isTableStateCurrent', () => {
 
 describe('setup state with a sport', () => {
   it('round-trips the sport and target', () => {
-    saveSetupState({ picked: ['x1'], size: 2, sport: 'spikeball', target: 11 })
-    expect(loadSetupState()).toEqual({ picked: ['x1'], size: 2, sport: 'spikeball', target: 11 })
+    saveSetupState('spikeball', { picked: ['x1'], size: 2, target: 11 })
+    expect(loadSetupState('spikeball')).toEqual({ picked: ['x1'], size: 2, sport: 'spikeball', target: 11 })
+  })
+
+  it('keeps each sport\'s pick apart', () => {
+    saveSetupState('beer_die', { picked: ['d1'], size: 3, target: 21 })
+    saveSetupState('spikeball', { picked: ['s1'], size: 2, target: 15 })
+    clearSetupState('spikeball')
+    expect(loadSetupState('spikeball')).toBeNull()
+    expect(loadSetupState('beer_die')).toMatchObject({ picked: ['d1'] })
+  })
+
+  it('still reads a die pick saved before the split, under the old key', () => {
+    window.localStorage.setItem('house-ladder-setup', JSON.stringify({ picked: ['old'], size: 3 }))
+    expect(loadSetupState('beer_die')).toEqual({ picked: ['old'], size: 3 })
+    expect(loadSetupState('spikeball')).toBeNull()
   })
 
   it('still reads a pick saved before there was a sport', () => {

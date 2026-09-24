@@ -2,133 +2,84 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getRatings } from '@/lib/ratings-cache'
 import { getPlayers, getGameLogAll } from '@/lib/queries'
-import { headToHead, liveGames, pointDifferentialFromLive } from '@/lib/domain/stats'
-import { earnedBadgesFromLive } from '@/lib/domain/badges'
+import { headToHeadBoth, playerSportSummary, type WinLoss } from '@/lib/domain/player-summary'
 import { TopBar } from '@/components/ui/TopBar'
-import { Pill } from '@/components/ui/Pill'
-import { PlayerBadges } from '@/components/ui/PlayerBadges'
-import { SportSwitch } from '@/components/ui/SportSwitch'
-import { SPORT_RULES, parseSport, withSport } from '@/lib/domain/sport'
-import { formatRating, formatRecord, formatPercent, countLabel, formatDiff, formatDiffAverage } from '@/lib/ui/format'
+import { SportCard } from '@/components/ui/SportCard'
+import { SPORT_RULES, type Sport } from '@/lib/domain/sport'
+import { countLabel } from '@/lib/ui/format'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PlayerPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>
-  searchParams: Promise<{ sport?: string | string[] }>
-}) {
+/**
+ * A player's page shows both sports at once: one roster, two ladders. The
+ * page itself is neutral (`data-sport="both"`) and each sport's card wears its
+ * own colours, so it has no Die │ Spike pill of its own.
+ */
+export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const sport = parseSport((await searchParams).sport)
-  // getGameLogAll() rather than getGames(): same rows, plus the timestamp
-  // the Ghost badge needs. Everything else on this page takes a GameRecord
-  // and is unaffected by the extra column, so this stays one query.
-  const [ratings, players, games] = await Promise.all([
-    getRatings(sport),
+  // getGameLogAll() rather than getGames(): same rows, plus the timestamp the
+  // Ghost badge needs.
+  const [players, dieRatings, dieGames, spikeRatings, spikeGames] = await Promise.all([
     getPlayers(),
-    getGameLogAll(sport),
+    getRatings('beer_die'),
+    getGameLogAll('beer_die'),
+    getRatings('spikeball'),
+    getGameLogAll('spikeball'),
   ])
   const me = players.find((p) => p.id === id)
   if (!me) notFound()
 
-  const index = ratings.findIndex((r) => r.playerId === id)
-  const rating = index >= 0 ? ratings[index] : undefined
-  // Sort/filter the history once and hand the shared list to both per-player
-  // computations, the way the rankings page does — rather than each of them
-  // re-sorting the whole table for itself.
-  const live = liveGames(games)
-  const diff = pointDifferentialFromLive(live, id)
-  const badges = earnedBadgesFromLive(live, id, new Date())
-
-  const records = players
-    .filter((p) => p.id !== id)
-    .map((p) => ({ p, h: headToHead(games, id, p.id) }))
-    .filter(({ h }) => h.wins + h.losses > 0)
-    .sort((a, b) => b.h.wins + b.h.losses - (a.h.wins + a.h.losses))
+  const now = new Date()
+  const die = playerSportSummary(dieRatings, dieGames, id, now)
+  const spike = playerSportSummary(spikeRatings, spikeGames, id, now)
+  const rivals = headToHeadBoth({ beer_die: dieGames, spikeball: spikeGames }, id, players)
 
   return (
-    <main>
-      <TopBar right={<Link href={withSport('/', sport)} className="eyebrow text-cream">← Ranks</Link>} />
-
-      <section className="cardinal-panel relative mt-2 overflow-hidden rounded-2xl p-4">
-        {rating && (
-          <span aria-hidden className="headline absolute top-1 right-3 text-[78px] text-gold/20">
-            #{index + 1}
-          </span>
-        )}
-        <p className="eyebrow text-gold">
-          {rating ? `No. ${index + 1}` : me.isHousemate ? 'Housemate' : 'Guest'}
-        </p>
-        <h1 className="headline mt-1 text-[50px]">{me.displayName}</h1>
-        {me.nicknames.length > 0 && (
-          <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[14px] text-cream/70">
-            {me.nicknames.map((n) => (
-              <span key={n}>&ldquo;{n}&rdquo;</span>
-            ))}
-          </p>
-        )}
-        {rating ? (
-          <p className="mt-2 font-mono text-[30px] font-bold">
-            {formatRating(rating.ordinal)}
-            <span className="ml-2 font-body text-[11px] font-semibold text-cream/80">rating</span>
-          </p>
-        ) : (
-          <p className="mt-2 text-[13px] text-cream/80">
-            No {SPORT_RULES[sport].name.toLowerCase()} games logged yet.
-          </p>
-        )}
-      </section>
-
-      {rating && (
-        <div className="mt-2 grid grid-cols-4 gap-1.5">
-          <Stat value={formatRecord(rating.wins, rating.games)} label="Record" />
-          <Stat
-            value={rating.games > 0 ? formatPercent(rating.wins / rating.games) : '—'}
-            label={countLabel(rating.games, 'game')}
-          />
-          <Stat
-            value={formatDiff(diff.total)}
-            label="Point diff"
-            sub={diff.average !== null ? `${formatDiffAverage(diff.average)}/gm` : undefined}
-            tone={diff.total > 0 ? 'up' : diff.total < 0 ? 'down' : undefined}
-            mono
-          />
-          <Stat value={rating.provisional ? 'Yes' : 'No'} label="Provisional" gold={rating.provisional} />
-        </div>
-      )}
-
-      <div className="mt-3">
-        <SportSwitch sport={sport} path={`/players/${id}`} />
-      </div>
-
-      <PlayerBadges badges={badges} />
-
-      <section className="mt-5">
-        <h2 className="mb-2 flex items-baseline justify-between">
-          <span className="eyebrow">Head to head</span>
-          <Link href={withSport(`/h2h?a=${id}`, sport)} className="eyebrow flex min-h-11 items-center text-gold">
-            vs someone →
+    // Bleeds past the layout's gutter so the neutral ground reaches the edges.
+    <main data-sport="both" className="-mx-4 -mt-2 min-h-dvh bg-ground px-4 pt-2 text-fg">
+      <TopBar
+        right={
+          <Link href="/" className="eyebrow flex min-h-11 items-center text-fg">
+            ← Ranks
           </Link>
+        }
+      />
+
+      <h1 className="headline mt-2 text-[54px]">{me.displayName}</h1>
+      {me.nicknames.length > 0 && (
+        <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[14px] text-fg/70">
+          {me.nicknames.map((n) => (
+            <span key={n}>&ldquo;{n}&rdquo;</span>
+          ))}
+        </p>
+      )}
+      <p className="eyebrow mt-2">
+        {me.isHousemate ? 'Housemate' : 'Guest'} · {countLabel(die.played, 'die game')} · {spike.played} spikeball
+      </p>
+
+      <SportCard sport="beer_die" summary={die} />
+      <SportCard sport="spikeball" summary={spike} />
+
+      <section className="mt-6 pb-4">
+        <h2 className="mb-1 flex items-center gap-2">
+          <span className="eyebrow flex-1">Head to head</span>
+          <span className="eyebrow w-[54px] text-center text-[10.5px]">Die</span>
+          <span className="eyebrow w-[54px] text-center text-[10.5px]">Spike</span>
         </h2>
-        {records.length === 0 ? (
-          <p className="surface rounded-2xl px-3 py-4 text-[13px] text-muted">
-            No head-to-head games logged yet.
-          </p>
+        {rivals.length === 0 ? (
+          <p className="surface rounded-2xl px-3 py-4 text-[13px] text-muted">No head-to-head games logged yet.</p>
         ) : (
-          <ul className="surface rounded-2xl px-3">
-            {records.map(({ p, h }) => (
-              <li key={p.id} className="flex min-h-11 items-center border-b border-gold/8 last:border-b-0">
-                <Link href={withSport(`/players/${p.id}`, sport)} className="flex min-h-11 flex-1 items-center self-stretch font-display text-[17px] font-bold uppercase">
-                  {p.displayName}
-                </Link>
-                {h.wins > h.losses && <Pill tone="gold">Owns</Pill>}
-                <span
-                  className={`ml-3 font-mono text-[14px] font-bold ${h.wins >= h.losses ? 'text-up' : 'text-down'}`}
+          <ul>
+            {rivals.map(({ player, die: d, spike: s }) => (
+              <li key={player.id} className="flex min-h-12 items-center gap-2 border-b border-fg/10 last:border-b-0">
+                <Link
+                  href={`/players/${player.id}`}
+                  className="flex min-h-11 flex-1 items-center self-stretch font-display text-[18px] font-bold uppercase"
                 >
-                  {h.wins}–{h.losses}
-                </span>
+                  {player.displayName}
+                </Link>
+                <Chip sport="beer_die" record={d} me={id} them={player.id} />
+                <Chip sport="spikeball" record={s} me={id} them={player.id} />
               </li>
             ))}
           </ul>
@@ -138,31 +89,32 @@ export default async function PlayerPage({
   )
 }
 
-function Stat({
-  value,
-  label,
-  sub,
-  gold = false,
-  tone,
-  mono = false,
-}: {
-  value: string
-  label: string
-  sub?: string
-  gold?: boolean
-  tone?: 'up' | 'down'
-  mono?: boolean
-}) {
-  const toneClass = tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : gold ? 'text-gold' : ''
-  return (
-    <div className="surface rounded-[10px] px-2.5 py-2">
-      <p
-        className={`${mono ? 'font-mono' : 'font-display'} text-[23px] leading-none font-extrabold ${toneClass}`}
+/**
+ * One sport's record against one opponent, in that sport's colours. It links
+ * to that sport's head-to-head page with `?sport=`, which switches this phone
+ * to that sport on the way (a plain `<a>`, for the same reason as the pill).
+ */
+function Chip({ sport, record, me, them }: { sport: Sport; record: WinLoss | null; me: string; them: string }) {
+  const name = SPORT_RULES[sport].name.toLowerCase()
+  if (record === null) {
+    return (
+      <span
+        role="img"
+        aria-label={`Never played in ${name}`}
+        className="flex h-8 w-[54px] items-center justify-center rounded-lg border border-dashed border-fg/20 font-mono text-[13px] text-muted"
       >
-        {value}
-      </p>
-      <p className="eyebrow mt-1 text-[10px]">{label}</p>
-      {sub && <p className="mt-0.5 font-mono text-[9px] text-muted">{sub}</p>}
-    </div>
+        —
+      </span>
+    )
+  }
+  return (
+    <a
+      data-sport={sport}
+      href={`/h2h?a=${me}&b=${them}&sport=${sport}`}
+      aria-label={`${record.wins}–${record.losses} in ${name}`}
+      className="panel flex h-8 w-[54px] items-center justify-center rounded-lg font-mono text-[13px] font-bold"
+    >
+      {record.wins}–{record.losses}
+    </a>
   )
 }

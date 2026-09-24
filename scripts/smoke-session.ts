@@ -31,26 +31,26 @@ assertLocalDatabase()
     const cid = () => crypto.randomUUID()
 
     await logGame({ clientId: cid(), sessionId, winner: 'holders', loserScore: 12, nextChallengers: bench })
-    console.log('after holder win  — run should be 1:', (await getActiveTable())!.runLength)
+    console.log('after holder win  — run should be 1:', (await getActiveTable('beer_die'))!.runLength)
 
     await logGame({ clientId: cid(), sessionId, winner: 'holders', loserScore: 8, nextChallengers: challengers })
-    console.log('after holder win  — run should be 2:', (await getActiveTable())!.runLength)
+    console.log('after holder win  — run should be 2:', (await getActiveTable('beer_die'))!.runLength)
 
     const replay = cid()
     await logGame({ clientId: replay, sessionId, winner: 'challengers', loserScore: 19, nextChallengers: bench })
     await logGame({ clientId: replay, sessionId, winner: 'challengers', loserScore: 19, nextChallengers: bench })
-    console.log('replayed write ignored — run should be 1:', (await getActiveTable())!.runLength)
-    const swapped = (await getActiveTable())!
+    console.log('replayed write ignored — run should be 1:', (await getActiveTable('beer_die'))!.runLength)
+    const swapped = (await getActiveTable('beer_die'))!
     console.log('holders swapped   — should be true:', swapped.holders.join() === challengers.join())
 
     await voidLastGame(sessionId)
-    console.log('after undo        — run should be 2:', (await getActiveTable())!.runLength)
+    console.log('after undo        — run should be 2:', (await getActiveTable('beer_die'))!.runLength)
 
     // --- Finding 1 regression: a rejected write must not partially commit,
     // and a retry with the same clientId (the offline-queue retry path)
     // must then succeed in full. Table is back to holders/challengers here.
     const badClientId = cid()
-    const beforeBad = (await getActiveTable())!
+    const beforeBad = (await getActiveTable('beer_die'))!
     let threw = false
     try {
       await logGame({
@@ -67,7 +67,7 @@ assertLocalDatabase()
     const [{ count: badGameCount }] = await sql`
       select count(*)::int as count from games where client_id = ${badClientId}
     `
-    const afterBad = (await getActiveTable())!
+    const afterBad = (await getActiveTable('beer_die'))!
     const tableUntouched =
       afterBad.holders.join() === beforeBad.holders.join() &&
       afterBad.challengers.join() === beforeBad.challengers.join() &&
@@ -78,11 +78,11 @@ assertLocalDatabase()
     console.log('rejected write left table alone — should be true:', tableUntouched)
 
     await logGame({ clientId: badClientId, sessionId, winner: 'holders', loserScore: 15, nextChallengers: bench })
-    const afterRetry = (await getActiveTable())!
+    const afterRetry = (await getActiveTable('beer_die'))!
     console.log('corrected retry applied         — run should be 3:', afterRetry.runLength)
 
     await endSession(sessionId)
-    console.log('session ended     — should be null:', await getActiveTable())
+    console.log('session ended     — should be null:', await getActiveTable('beer_die'))
 
     // --- Finding 4 regression: logGame must reject writes to an ended session.
     let endedRejectedCorrectly = false

@@ -5,8 +5,8 @@ import { EGG_CLOSED, dismissReveal, tapWordmark, type EggState } from '@/lib/dom
 import { ShieldsReveal } from './ShieldsReveal'
 
 /**
- * The three Shedquarters lockups. "SHED" is always cream and the second
- * half always gold; there is no logo artwork, only type.
+ * The three Shedquarters lockups. "SHED" is always the foreground colour and
+ * the second half always the accent; there is no logo artwork, only type.
  *
  * The mark is also the way in to `ShieldsReveal` — seven quick taps. Every
  * rule about that (how many taps, how slow is too slow, when the panel
@@ -33,8 +33,8 @@ export function Wordmark({ variant }: { variant: 'bar' | 'inline' | 'stacked' })
   if (variant === 'bar') {
     return (
       <>
-        <span onClick={onTap} className="headline text-[17px] leading-none text-cream">
-          SHED<span className="text-gold">HQ</span>
+        <span onClick={onTap} className="headline text-[17px] leading-none text-fg">
+          SHED<span className="text-accent">HQ</span>
         </span>
         {reveal}
       </>
@@ -44,10 +44,10 @@ export function Wordmark({ variant }: { variant: 'bar' | 'inline' | 'stacked' })
   if (variant === 'stacked') {
     return (
       <>
-        <span onClick={onTap} className="headline block text-[64px] text-cream">
+        <span onClick={onTap} className="headline block text-[64px] text-fg">
           Shed
           <br />
-          <span className="text-gold">quarters</span>
+          <span className="text-accent">quarters</span>
         </span>
         {reveal}
       </>
@@ -57,8 +57,8 @@ export function Wordmark({ variant }: { variant: 'bar' | 'inline' | 'stacked' })
   return (
     <>
       <span onClick={onTap} className="inline-flex flex-col items-center gap-2">
-        <span className="headline text-[40px] text-cream">
-          Shed<span className="text-gold">quarters</span>
+        <span className="headline text-[40px] text-fg">
+          Shed<span className="text-accent">quarters</span>
         </span>
         <span className="eyebrow">Beer Die · Est. 2026</span>
       </span>

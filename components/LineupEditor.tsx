@@ -112,7 +112,7 @@ export function LineupEditor({
     <>
       <div role="group" aria-label="Lineup" className="mt-4">
         <div className="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-center gap-x-2 gap-y-2">
-          <p className="eyebrow text-[11px] text-gold">Holding the table</p>
+          <p className="eyebrow text-[11px] text-accent">Holding the table</p>
           <span />
           <p className="eyebrow text-[11px]">Challengers</p>
 
@@ -154,7 +154,7 @@ export function LineupEditor({
                 onClick={() => onName(p.id)}
                 aria-pressed={on}
                 aria-label={rosterTapLabel(lineup, p.id, (id) => name(id) ?? '?')}
-                className={`min-h-11 rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-gold bg-gold text-gold-ink' : 'surface'}`}
+                className={`min-h-11 rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface'}`}
               >
                 {p.displayName}
               </button>
@@ -195,7 +195,7 @@ function SlotRow({
         type="button"
         onClick={() => onSwap(left)}
         aria-label={`Switch ${leftName ?? 'empty slot'} and ${rightName ?? 'empty slot'} between sides`}
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/25 bg-gold/6 text-[17px] text-gold"
+        className="flex h-11 w-11 items-center justify-center rounded-full border border-accent/25 bg-accent/6 text-[17px] text-accent"
       >
         <span aria-hidden>⇄</span>
       </button>
@@ -223,12 +223,12 @@ function Slot({
   // toggle, the on-board roster chips and Save all use it — but nothing else
   // inside the board does.)
   const skin = active
-    ? 'border-gold bg-gold/12 text-gold shadow-[0_0_0_3px_rgb(255_204_0/0.16)]'
+    ? 'border-accent bg-accent/12 text-accent shadow-[0_0_0_3px_rgb(255_204_0/0.16)]'
     : name === null
-      ? 'border-dashed border-gold/25 text-muted'
+      ? 'border-dashed border-accent/25 text-muted'
       : holding
-        ? 'border-cardinal-hi/70 bg-cardinal-deep/45 text-cream'
-        : 'border-gold/15 bg-cream/4 text-cream'
+        ? 'border-panel-hi/70 bg-panel-deep/45 text-fg'
+        : 'border-accent/15 bg-fg/4 text-fg'
 
   return (
     <button

@@ -130,11 +130,11 @@ export function RosterList({ players }: { players: Player[] }) {
     <>
       <ul className="surface mt-4 rounded-2xl px-3">
         {players.map((p) => (
-          <li key={p.id} className="flex min-h-11 items-center border-b border-gold/8 last:border-b-0">
+          <li key={p.id} className="flex min-h-11 items-center border-b border-accent/8 last:border-b-0">
             <span className="flex-1 py-1">
               <span className="block font-display text-[17px] font-bold uppercase">{p.displayName}</span>
               {p.nicknames.length > 0 && (
-                <span className="block text-[12px] text-cream/60">
+                <span className="block text-[12px] text-fg/60">
                   {p.nicknames.map((n) => `“${n}”`).join(' · ')}
                 </span>
               )}
@@ -158,7 +158,7 @@ export function RosterList({ players }: { players: Player[] }) {
             <h2 className="headline text-[26px]">Edit player</h2>
 
             <div>
-              <label htmlFor="edit-name" className="eyebrow text-gold">
+              <label htmlFor="edit-name" className="eyebrow text-accent">
                 Name
               </label>
               <div className="mt-1.5 flex gap-2">
@@ -170,35 +170,35 @@ export function RosterList({ players }: { players: Player[] }) {
                     setName(e.target.value)
                   }}
                   autoComplete="off"
-                  className="min-h-12 flex-1 rounded-[10px] border border-gold/15 bg-black/30 px-3 text-[17px] text-cream placeholder:text-faint focus:border-gold focus:outline-none"
+                  className="min-h-12 flex-1 rounded-[10px] border border-accent/15 bg-black/30 px-3 text-[17px] text-fg placeholder:text-faint focus:border-accent focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={saveName}
                   disabled={pending || name.trim() === editing.displayName}
-                  className="flex min-h-12 items-center justify-center rounded-xl bg-gold px-4 font-display text-[15px] font-extrabold uppercase italic text-gold-ink disabled:opacity-40"
+                  className="flex min-h-12 items-center justify-center rounded-xl bg-accent px-4 font-display text-[15px] font-extrabold uppercase italic text-accent-ink disabled:opacity-40"
                 >
                   Save
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-muted">Up to {MAX_LENGTH} characters.</p>
               {nameError && (
-                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-cardinal-hi/25 px-3 py-2 text-[13px]">
+                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
                   {nameError}
                 </p>
               )}
             </div>
 
-            <div className="border-t border-gold/15 pt-3">
-              <label htmlFor="edit-nickname" className="eyebrow text-gold">
+            <div className="border-t border-accent/15 pt-3">
+              <label htmlFor="edit-nickname" className="eyebrow text-accent">
                 Nicknames <span className="normal-case text-muted">(optional, up to {MAX_NICKNAMES})</span>
               </label>
 
               {nicknames.length > 0 && (
                 <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-2">
                   {nicknames.map((n) => (
-                    <li key={n} className="flex items-center gap-1 rounded-full border border-gold/25 bg-black/25 py-1 pl-3 pr-1.5">
-                      <span className="text-[13px] text-cream">{n}</span>
+                    <li key={n} className="flex items-center gap-1 rounded-full border border-accent/25 bg-black/25 py-1 pl-3 pr-1.5">
+                      <span className="text-[13px] text-fg">{n}</span>
                       {/*
                         The pill itself stays visually tiny (matches the
                         broadcast look's compact chips), but the tap target
@@ -216,7 +216,7 @@ export function RosterList({ players }: { players: Player[] }) {
                         onClick={() => removeNick(n)}
                         disabled={pending}
                         aria-label={`Remove nickname ${n}`}
-                        className="relative flex h-5 w-5 items-center justify-center rounded-full text-[13px] font-bold text-cream/60 disabled:opacity-40 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
+                        className="relative flex h-5 w-5 items-center justify-center rounded-full text-[13px] font-bold text-fg/60 disabled:opacity-40 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
                       >
                         &times;
                       </button>
@@ -243,20 +243,20 @@ export function RosterList({ players }: { players: Player[] }) {
                   autoComplete="off"
                   placeholder="Add a nickname"
                   disabled={pending || nicknames.length >= MAX_NICKNAMES}
-                  className="min-h-12 flex-1 rounded-[10px] border border-gold/15 bg-black/30 px-3 text-[17px] text-cream placeholder:text-faint focus:border-gold focus:outline-none disabled:opacity-40"
+                  className="min-h-12 flex-1 rounded-[10px] border border-accent/15 bg-black/30 px-3 text-[17px] text-fg placeholder:text-faint focus:border-accent focus:outline-none disabled:opacity-40"
                 />
                 <button
                   type="button"
                   onClick={addNick}
                   disabled={pending || nickInput.trim().length === 0 || nicknames.length >= MAX_NICKNAMES}
-                  className="flex min-h-12 items-center justify-center rounded-xl bg-gold px-4 font-display text-[15px] font-extrabold uppercase italic text-gold-ink disabled:opacity-40"
+                  className="flex min-h-12 items-center justify-center rounded-xl bg-accent px-4 font-display text-[15px] font-extrabold uppercase italic text-accent-ink disabled:opacity-40"
                 >
                   Add
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-muted">Up to {MAX_LENGTH} characters each.</p>
               {nickError && (
-                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-cardinal-hi/25 px-3 py-2 text-[13px]">
+                <p role="alert" className="mt-2 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
                   {nickError}
                 </p>
               )}
@@ -266,7 +266,7 @@ export function RosterList({ players }: { players: Player[] }) {
               type="button"
               onClick={close}
               disabled={pending}
-              className="flex min-h-11 items-center justify-center font-display text-[13px] font-bold uppercase tracking-[0.14em] text-cream/60 disabled:opacity-40"
+              className="flex min-h-11 items-center justify-center font-display text-[13px] font-bold uppercase tracking-[0.14em] text-fg/60 disabled:opacity-40"
             >
               Done
             </button>

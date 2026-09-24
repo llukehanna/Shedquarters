@@ -12,7 +12,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-gold/15 bg-ink-deep/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-accent/15 bg-ground-deep/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
     >
       <ul className="mx-auto flex h-16 max-w-md">
         {TABS.map((tab) => {
@@ -22,13 +22,13 @@ export function TabBar() {
               <Link
                 href={tab.href}
                 aria-current={on ? 'page' : undefined}
-                className={`flex h-full flex-col items-center justify-center gap-1 font-display text-[12.5px] font-bold uppercase tracking-[0.12em] ${on ? 'text-gold' : 'text-faint'}`}
+                className={`flex h-full flex-col items-center justify-center gap-1 font-display text-[12.5px] font-bold uppercase tracking-[0.12em] ${on ? 'text-accent' : 'text-faint'}`}
               >
                 <span className="relative h-[3px] w-5">
                   {on && (
                     <motion.span
                       layoutId="tab-indicator"
-                      className="absolute inset-0 rounded-full bg-gold"
+                      className="absolute inset-0 rounded-full bg-accent"
                     />
                   )}
                 </span>

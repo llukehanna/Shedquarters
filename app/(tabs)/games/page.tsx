@@ -5,19 +5,15 @@ import { groupByNight, liveGameCount } from '@/lib/domain/game-log'
 import { getRatingDeltas } from '@/lib/ratings-cache'
 import type { GameDelta } from '@/lib/domain/ratings'
 import { TopBar } from '@/components/ui/TopBar'
-import { SportSwitch } from '@/components/ui/SportSwitch'
-import { SPORT_RULES, parseSport, withSport } from '@/lib/domain/sport'
+import { SPORT_RULES } from '@/lib/domain/sport'
+import { currentSport } from '@/lib/sport-cookie'
 import { Pill } from '@/components/ui/Pill'
 import { countLabel, formatNightDate, formatDiffAverage } from '@/lib/ui/format'
 
 export const dynamic = 'force-dynamic'
 
-export default async function GamesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ sport?: string | string[] }>
-}) {
-  const sport = parseSport((await searchParams).sport)
+export default async function GamesPage() {
+  const sport = await currentSport()
   // getRatingDeltas() shares its scan of `games` and its openskill replay
   // with the ranks/profile pages' getRatings() — both are cached behind the
   // same fingerprint in lib/ratings-cache.ts, so this page never re-fetches
@@ -32,22 +28,18 @@ export default async function GamesPage({
 
   return (
     <main>
-      <TopBar
-        right={
-          <Link href={withSport('/', sport)} className="eyebrow flex min-h-11 items-center text-cream">
-            ← Ranks
-          </Link>
-        }
-      />
+      <TopBar />
+      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
+        ← Ranks
+      </Link>
 
-      <h1 className="headline mt-2 text-[46px]">
-        Game <span className="text-gold">Log</span>
+      <h1 className="headline text-[46px]">
+        Game <span className="text-accent">Log</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">
         {SPORT_RULES[sport].name} · {countLabel(liveGameCount(games), 'game')}
       </p>
 
-      <SportSwitch sport={sport} path="/games" />
 
       {nights.length === 0 ? (
         <p className="surface rounded-2xl px-3 py-4 text-[13px] text-muted">
@@ -57,7 +49,7 @@ export default async function GamesPage({
         nights.map((night) => (
           <section key={night.sessionId} className="mt-6 first:mt-0">
             <h2 className="mb-2 flex items-baseline justify-between">
-              <span className="eyebrow text-gold">{formatNightDate(night.date)}</span>
+              <span className="eyebrow text-accent">{formatNightDate(night.date)}</span>
               <span className="eyebrow text-faint">{countLabel(liveGameCount(night.games), 'game')}</span>
             </h2>
             <ul className="flex flex-col gap-2">
@@ -98,13 +90,13 @@ function GameRow({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p
-            className={`flex items-baseline gap-1.5 font-display text-[15px] font-bold leading-snug uppercase text-gold ${voided ? 'line-through' : ''}`}
+            className={`flex items-baseline gap-1.5 font-display text-[15px] font-bold leading-snug uppercase text-accent ${voided ? 'line-through' : ''}`}
           >
             <span className="min-w-0">{namesOf(winnerIds, players)}</span>
             {delta && <RatingDelta value={delta.winnerDelta} />}
           </p>
           <p
-            className={`mt-0.5 flex items-baseline gap-1.5 font-display text-[13px] font-semibold leading-snug uppercase text-cream/60 ${voided ? 'line-through' : ''}`}
+            className={`mt-0.5 flex items-baseline gap-1.5 font-display text-[13px] font-semibold leading-snug uppercase text-fg/60 ${voided ? 'line-through' : ''}`}
           >
             <span className="min-w-0">{namesOf(loserIds, players)}</span>
             {delta && <RatingDelta value={delta.loserDelta} />}
@@ -113,9 +105,9 @@ function GameRow({
         <p
           className={`shrink-0 whitespace-nowrap font-mono text-[16px] font-bold ${voided ? 'text-muted line-through' : ''}`}
         >
-          <span className={voided ? '' : 'text-gold'}>{winnerScore}</span>
+          <span className={voided ? '' : 'text-accent'}>{winnerScore}</span>
           <span className="text-muted">–</span>
-          <span className={voided ? '' : 'text-cream/80'}>{loserScore}</span>
+          <span className={voided ? '' : 'text-fg/80'}>{loserScore}</span>
         </p>
       </div>
       {voided && (

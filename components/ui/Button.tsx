@@ -1,9 +1,9 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 const TONES = {
-  gold: 'bg-gold text-gold-ink',
-  cardinal: 'bg-gradient-to-br from-cardinal-glow to-cardinal-shade text-white shadow-[inset_0_0_0_1px_rgb(255_204_0/0.35)]',
-  ghost: 'border border-gold/15 text-cream not-italic',
+  accent: 'bg-accent text-accent-ink',
+  panel: 'bg-gradient-to-br from-panel-glow to-panel-shade text-panel-ink ring-1 ring-inset ring-panel-ink/35',
+  ghost: 'border border-accent/15 text-fg not-italic',
 } as const
 
 const SIZES = {
@@ -12,7 +12,7 @@ const SIZES = {
 } as const
 
 export function Button({
-  tone = 'gold',
+  tone = 'accent',
   size = 'lg',
   className = '',
   ...props

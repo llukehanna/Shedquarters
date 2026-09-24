@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getActiveTable } from '@/lib/session'
+import { currentSport } from '@/lib/sport-cookie'
 import { getPlayers } from '@/lib/queries'
 import { requirePasscode } from '@/lib/auth'
 import { TableMode } from '@/components/TableMode'
@@ -14,8 +15,11 @@ export default async function TablePage() {
     redirect('/gate')
   }
 
-  const [table, players] = await Promise.all([getActiveTable(), getPlayers()])
-  if (!table) return <SessionSetup players={players} />
+  // The table for the sport this phone is on. The other sport's night, if one
+  // is going, is one tap away on the top-bar pill.
+  const sport = await currentSport()
+  const [table, players] = await Promise.all([getActiveTable(sport), getPlayers()])
+  if (!table) return <SessionSetup key={sport} sport={sport} players={players} />
 
   return (
     <TableMode

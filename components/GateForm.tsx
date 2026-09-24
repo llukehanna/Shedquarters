@@ -65,25 +65,25 @@ export function GateForm({ staleInvite = false }: { staleInvite?: boolean }) {
       </div>
 
       {staleInvite && (
-        <p role="alert" className="mt-4 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2 text-[13px] leading-snug text-cream">
+        <p role="alert" className="mt-4 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-[13px] leading-snug text-fg">
           That invite link has been reset. Ask someone in the Shed for the new one, or use the Shed PIN.
         </p>
       )}
 
-      <p className="eyebrow mt-12 text-center text-cream">Shed PIN</p>
+      <p className="eyebrow mt-12 text-center text-fg">Shed PIN</p>
 
       <div className="my-5 flex justify-center gap-3.5" aria-hidden>
         {Array.from({ length: PIN_LENGTH }, (_, i) => (
           <span
             key={i}
-            className={`h-4 w-4 rounded-full border-2 border-gold ${i < pin.length || pending ? 'bg-gold' : ''} ${pending ? 'motion-safe:animate-pulse' : ''}`}
+            className={`h-4 w-4 rounded-full border-2 border-accent ${i < pin.length || pending ? 'bg-accent' : ''} ${pending ? 'motion-safe:animate-pulse' : ''}`}
           />
         ))}
       </div>
 
       <p role="status" aria-live="polite" className="min-h-[88px]">
         {message && (
-          <span className="block rounded-xl border border-down/45 bg-cardinal-hi/25 px-3 py-2.5 text-center text-[13px] leading-snug">
+          <span className="block rounded-xl border border-down/45 bg-down/15 px-3 py-2.5 text-center text-[13px] leading-snug">
             <span className="block font-display text-[21px] font-extrabold uppercase">{message.title}</span>
             {message.body}
           </span>

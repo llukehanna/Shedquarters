@@ -97,17 +97,28 @@ export function isStoredSetupState(v: unknown): v is StoredSetupState {
   return isSport(o.sport) && (o.target === undefined || isValidTarget(o.sport, o.target))
 }
 
-export function loadSetupState(): StoredSetupState | null {
-  const parsed = readJSON(SETUP_KEY)
-  return isStoredSetupState(parsed) ? parsed : null
+/**
+ * One saved pick per sport, since each sport's Table tab has its own setup
+ * screen now. Beer die keeps the original key, so a pick saved before the
+ * split still comes back.
+ */
+function setupKey(sport: Sport): string {
+  return sport === 'beer_die' ? SETUP_KEY : `${SETUP_KEY}:${sport}`
 }
 
-export function saveSetupState(state: StoredSetupState): void {
-  writeJSON(SETUP_KEY, state)
+export function loadSetupState(sport: Sport): StoredSetupState | null {
+  const parsed = readJSON(setupKey(sport))
+  if (!isStoredSetupState(parsed)) return null
+  // A pick that names a different sport is not this sport's pick.
+  return (parsed.sport ?? 'beer_die') === sport ? parsed : null
 }
 
-export function clearSetupState(): void {
-  remove(SETUP_KEY)
+export function saveSetupState(sport: Sport, state: StoredSetupState): void {
+  writeJSON(setupKey(sport), { ...state, sport })
+}
+
+export function clearSetupState(sport: Sport): void {
+  remove(setupKey(sport))
 }
 
 // ---------------------------------------------------------------------------

@@ -30,7 +30,7 @@ export default function AppError({
       <Wordmark variant="bar" />
       <div className="mt-auto">
         <h1 className="headline text-[44px]">
-          That <span className="text-gold">broke.</span>
+          That <span className="text-accent">broke.</span>
         </h1>
         <p className="mt-3 text-[15px] leading-snug text-muted">
           Nothing you did. Try again — and if it keeps happening, your sign-in may have expired, so
@@ -39,13 +39,13 @@ export default function AppError({
         <button
           type="button"
           onClick={() => retry()}
-          className="mt-6 flex min-h-14 w-full items-center justify-center rounded-xl bg-gold font-display text-[23px] font-extrabold uppercase italic text-gold-ink"
+          className="mt-6 flex min-h-14 w-full items-center justify-center rounded-xl bg-accent font-display text-[23px] font-extrabold uppercase italic text-accent-ink"
         >
           Try again
         </button>
         <Link
           href="/"
-          className="mt-2 flex min-h-11 w-full items-center justify-center font-display text-[15px] font-bold uppercase tracking-[0.12em] text-cream/70"
+          className="mt-2 flex min-h-11 w-full items-center justify-center font-display text-[15px] font-bold uppercase tracking-[0.12em] text-fg/70"
         >
           Back to ranks
         </Link>

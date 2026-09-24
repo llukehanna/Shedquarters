@@ -113,3 +113,10 @@ create table if not exists ratings_cache_by_sport (
   deltas      jsonb not null,
   computed_at timestamptz not null default now()
 );
+
+-- One open night per sport. A beer die night and a spikeball night can run side
+-- by side (the table screen shows whichever sport the phone is on), but two of
+-- the same sport cannot, so two phones starting "the" night at once can't split
+-- the house across two sessions. startSession turns a hit on this into a clear
+-- error. No semicolons in these comments: scripts/migrate.ts splits on them.
+create unique index if not exists sessions_one_open_per_sport on sessions (game_type) where ended_at is null;

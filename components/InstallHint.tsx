@@ -68,12 +68,12 @@ export function InstallHint() {
     <aside aria-label="Install Shedquarters" className="surface mt-3 mb-5 flex items-start gap-3 rounded-2xl p-3.5">
       <div className="flex-1">
         <p className="font-display text-[17px] font-extrabold uppercase italic leading-tight">
-          Put it on your <span className="text-gold">home screen</span>
+          Put it on your <span className="text-accent">home screen</span>
         </p>
         {mode === 'ios' ? (
           <p className="mt-1 text-[13px] leading-snug text-muted">
-            In Safari, tap <span className="text-cream">Share</span>, then{' '}
-            <span className="text-cream">Add to Home Screen</span>. It opens full-screen like an app.
+            In Safari, tap <span className="text-fg">Share</span>, then{' '}
+            <span className="text-fg">Add to Home Screen</span>. It opens full-screen like an app.
           </p>
         ) : (
           <button
@@ -82,7 +82,7 @@ export function InstallHint() {
               await promptEvent?.prompt()
               setMode('hidden')
             }}
-            className="mt-2 min-h-11 rounded-xl bg-gold px-4 font-display text-[16px] font-extrabold uppercase italic text-gold-ink"
+            className="mt-2 min-h-11 rounded-xl bg-accent px-4 font-display text-[16px] font-extrabold uppercase italic text-accent-ink"
           >
             Install app
           </button>
