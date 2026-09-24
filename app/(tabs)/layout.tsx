@@ -1,5 +1,6 @@
 import { TabBar } from '@/components/ui/TabBar'
 import { SportProvider } from '@/components/SportContext'
+import { SwipeTabs } from '@/components/SwipeTabs'
 import { currentSport } from '@/lib/sport-cookie'
 import { getLiveSports } from '@/lib/session'
 
@@ -10,10 +11,11 @@ export default async function TabsLayout({ children }: LayoutProps<'/'>) {
   const [sport, liveSports] = await Promise.all([currentSport(), getLiveSports()])
   return (
     <SportProvider sport={sport} liveSports={liveSports}>
-      {/* Phone-width column; the bottom padding keeps content clear of the fixed tab bar. */}
-      <div className="mx-auto w-full max-w-md px-4 pt-2 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      {/* Phone-width column; the bottom padding keeps content clear of the fixed tab bar.
+          Swiping sideways on it moves between the tabs. */}
+      <SwipeTabs className="mx-auto w-full max-w-md px-4 pt-2 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {children}
-      </div>
+      </SwipeTabs>
       <TabBar />
     </SportProvider>
   )
