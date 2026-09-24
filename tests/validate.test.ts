@@ -22,6 +22,24 @@ describe('parseLogGameInput', () => {
     })
   })
 
+  it('passes a target score through', () => {
+    expect(parseLogGameInput({ ...valid, targetScore: 11 })).toEqual({ ...valid, targetScore: 11 })
+  })
+
+  it('leaves the target out entirely when an older phone never sent one', () => {
+    expect(parseLogGameInput(valid)).not.toHaveProperty('targetScore')
+  })
+
+  it.each([
+    ['a string', '15'],
+    ['zero', 0],
+    ['a negative', -11],
+    ['a fraction', 10.5],
+    ['null', null],
+  ])('rejects a target score that is %s', (_label, targetScore) => {
+    expect(() => parseLogGameInput({ ...valid, targetScore })).toThrow('invalid request body: targetScore')
+  })
+
   it('strips unknown fields rather than passing them through to SQL', () => {
     expect(parseLogGameInput({ ...valid, voided: true, seq: 99 })).toEqual(valid)
   })

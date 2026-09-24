@@ -10,6 +10,9 @@ import {
   loadTableState,
   saveSetupState,
   saveTableState,
+  loadTarget,
+  saveTarget,
+  clearTarget,
   type StoredPhase,
   type StoredTableState,
 } from '@/lib/client/persist'
@@ -322,5 +325,41 @@ describe('isTableStateCurrent', () => {
     } else {
       throw new Error('expected isTableStateCurrent to be true')
     }
+  })
+})
+
+describe('setup state with a sport', () => {
+  it('round-trips the sport and target', () => {
+    saveSetupState({ picked: ['x1'], size: 2, sport: 'spikeball', target: 11 })
+    expect(loadSetupState()).toEqual({ picked: ['x1'], size: 2, sport: 'spikeball', target: 11 })
+  })
+
+  it('still reads a pick saved before there was a sport', () => {
+    expect(isStoredSetupState({ picked: [], size: 3 })).toBe(true)
+  })
+
+  it('rejects a target the sport is not played to', () => {
+    expect(isStoredSetupState({ picked: [], size: 2, sport: 'spikeball', target: 21 })).toBe(false)
+    expect(isStoredSetupState({ picked: [], size: 2, sport: 'croquet' })).toBe(false)
+    expect(isStoredSetupState({ picked: [], size: 3, target: 15 })).toBe(false)
+  })
+})
+
+describe('the next game\'s target', () => {
+  it('round-trips per session', () => {
+    saveTarget('s1', 25)
+    expect(loadTarget('s1', 'spikeball')).toBe(25)
+    expect(loadTarget('s2', 'spikeball')).toBeNull()
+  })
+
+  it('ignores a stored target the sport does not allow', () => {
+    saveTarget('s1', 25)
+    expect(loadTarget('s1', 'beer_die')).toBeNull()
+  })
+
+  it('clears', () => {
+    saveTarget('s1', 11)
+    clearTarget('s1')
+    expect(loadTarget('s1', 'spikeball')).toBeNull()
   })
 })

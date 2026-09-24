@@ -14,9 +14,11 @@
  */
 
 import { isStoredLineup, type StoredLineup } from '@/lib/domain/lineup'
+import { isSport, isValidTarget, type Sport } from '@/lib/domain/sport'
 
 const SETUP_KEY = 'house-ladder-setup'
 const TABLE_KEY_PREFIX = 'house-ladder-table:'
+const TARGET_KEY_PREFIX = 'house-ladder-target:'
 
 /**
  * Bumped whenever the stored table state changes shape.
@@ -74,18 +76,25 @@ function remove(key: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// SessionSetup: the in-progress pick, and the 2v2/3v3 choice.
+// SessionSetup: the in-progress pick, the 2v2/3v3 choice, and which game.
 //
 // No session exists yet at this screen, so there is nothing to key this on —
 // one slot, shared by whoever is setting up the next game on this phone.
 // ---------------------------------------------------------------------------
 
-export type StoredSetupState = { picked: string[]; size: 2 | 3 }
+/**
+ * `sport` and `target` are optional because a phone that set up a game
+ * before there was a second sport stored neither, and that pick is still a
+ * perfectly good beer die pick.
+ */
+export type StoredSetupState = { picked: string[]; size: 2 | 3; sport?: Sport; target?: number }
 
 export function isStoredSetupState(v: unknown): v is StoredSetupState {
   if (v === null || typeof v !== 'object') return false
   const o = v as Record<string, unknown>
-  return isStringArray(o.picked) && isTeamSize(o.size)
+  if (!isStringArray(o.picked) || !isTeamSize(o.size)) return false
+  if (o.sport === undefined) return o.target === undefined
+  return isSport(o.sport) && (o.target === undefined || isValidTarget(o.sport, o.target))
 }
 
 export function loadSetupState(): StoredSetupState | null {
@@ -186,6 +195,31 @@ export function saveTableState(sessionId: string, state: StoredTableStateInput):
 
 export function clearTableState(sessionId: string): void {
   remove(tableKey(sessionId))
+}
+
+// ---------------------------------------------------------------------------
+// TableMode: what the next game is being played to, when the night's sport
+// lets the table choose. Kept apart from the phase above because that state
+// is cleared whenever the screen settles back on "who won?", and the target
+// has to outlive that. Like everything here it's a convenience: the game
+// itself carries its target to the server, which is the record.
+// ---------------------------------------------------------------------------
+
+function targetKey(sessionId: string): string {
+  return TARGET_KEY_PREFIX + sessionId
+}
+
+export function loadTarget(sessionId: string, sport: Sport): number | null {
+  const parsed = readJSON(targetKey(sessionId))
+  return isValidTarget(sport, parsed) ? parsed : null
+}
+
+export function saveTarget(sessionId: string, target: number): void {
+  writeJSON(targetKey(sessionId), target)
+}
+
+export function clearTarget(sessionId: string): void {
+  remove(targetKey(sessionId))
 }
 
 /**

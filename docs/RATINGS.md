@@ -3,6 +3,8 @@
 Every number on the rankings page comes from replaying the `games` table in order.
 No rating is ever stored as a fact. The only stored copy is a cache that knows when it's stale.
 
+Each sport is its own ladder. Beer die and spikeball are replayed, cached and ranked separately, and a player's rating in one says nothing about the other.
+
 ## The replay
 
 `computeRatingsAndDeltas` in `lib/domain/ratings.ts`:
@@ -10,7 +12,7 @@ No rating is ever stored as a fact. The only stored copy is a cache that knows w
 1. Drops voided games.
 2. Sorts by `ord`, a `bigserial` assigned on insert.
 3. Starts every player at OpenSkill's default (μ = 25, σ ≈ 8.33).
-4. For each game, calls `rate()` with both teams, the two scores, and `margin: 5`, then records each side's average change.
+4. For each game, calls `rate()` with both teams, the two scores, and a margin scaled to that game's target (`marginFor`: 5 for 21), then records each side's average change.
 5. Returns every player's rating plus a per-game delta map keyed by `ord`.
 
 The displayed rating is OpenSkill's **ordinal**, μ − 3σ: a conservative estimate that starts at 0 and rises as the system becomes more confident.
@@ -36,12 +38,14 @@ OpenSkill v5 supports margin natively.
 With `margin: 5`, any win by 5 or fewer is an ordinary win. Past that, the update is amplified by `log(1 + (gap − 5))`.
 A 21–0 skunk counts for noticeably more than a 21–15 win, but it takes a lot of blowouts to outweigh a lot of wins.
 
+Shorter games get a proportionally smaller margin: 3 for a game to 11, 4 for 15, 6 for 25. So an 11–5 spikeball game counts as a beating the way a 21–11 does.
+
 ## The cache
 
-A full replay is cheap at this scale, but every page needs it, so it's cached in `ratings_cache`, a single row.
+A full replay is cheap at this scale, but every page needs it, so it's cached in `ratings_cache_by_sport`, one row per sport.
 
 ```
-fingerprint = count(games) : max(ord) : count(voided games)
+fingerprint = count(games) : max(ord) : count(voided games)     -- over that sport's games only
 ```
 
 On each read, `getRatings()` computes the fingerprint (one aggregate query) and compares it to the cached row.
@@ -81,11 +85,11 @@ All of these are pure functions in `lib/domain/`, computed per request from the 
 | Badge | Earned by |
 |---|---|
 | Skunk ×N | Winning a game 21–0 |
-| Heartbreaker ×N | Winning a game that went past 21 by exactly 2 |
+| Heartbreaker ×N | Winning a game that went past its target by exactly 2 |
 | Rookie | Fewer than 10 games (the provisional line) |
 | Ghost | No games in 21 days |
 
 ### Loser's tax
 
-After a game is entered, table mode prints "Loser's tax." under any result won by 11 or more.
+After a game is entered, table mode prints "Loser's tax." when the losers finished below half the target: won by 11 or more in a game to 21, 6 or more to 11, 8 or more to 15, 13 or more to 25.
 It's display only and deliberately doesn't reuse the rating `MARGIN`: how much a score moves a rating and what the table says out loud are separate decisions.

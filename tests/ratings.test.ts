@@ -4,6 +4,8 @@ import {
   computeRatings,
   computeRatingDeltas,
   PROVISIONAL_GAMES,
+  MARGIN,
+  marginFor,
   type GameRecord,
   type PlayerRating,
 } from '@/lib/domain/ratings'
@@ -314,5 +316,33 @@ describe('computeRatingDeltas', () => {
     const d = computeRatingDeltas([emptyTeam]).get(1)!
     expect(d.loserDelta).toBe(0)
     expect(Number.isNaN(d.loserDelta)).toBe(false)
+  })
+})
+
+describe('marginFor', () => {
+  it('is MARGIN for a game to 21, so beer die ratings are unchanged', () => {
+    expect(marginFor(21)).toBe(MARGIN)
+    expect(marginFor()).toBe(MARGIN)
+  })
+
+  it('scales with the length of the game', () => {
+    expect(marginFor(11)).toBe(3)
+    expect(marginFor(15)).toBe(4)
+    expect(marginFor(25)).toBe(6)
+  })
+})
+
+describe('computeRatings with per-game targets', () => {
+  it('treats the same gap as more lopsided in a shorter game', () => {
+    // A 5-point gap: an ordinary win to 21, a clear beating to 11.
+    const to21 = computeRatings([game(1, { scoreA: 21, scoreB: 16 })])
+    const to11 = computeRatings([game(1, { scoreA: 11, scoreB: 6, targetScore: 11 })])
+    expect(to11.get('a1')!.ordinal).toBeGreaterThan(to21.get('a1')!.ordinal)
+  })
+
+  it('reads a missing target as 21', () => {
+    const implicit = computeRatings([game(1, { scoreA: 21, scoreB: 5 })])
+    const explicit = computeRatings([game(1, { scoreA: 21, scoreB: 5, targetScore: 21 })])
+    expect(implicit).toEqual(explicit)
   })
 })

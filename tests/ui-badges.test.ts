@@ -74,7 +74,7 @@ describe('badge copy', () => {
       Object.fromEntries(Object.entries(BADGE_COPY).map(([k, c]) => [k, c.blurb])),
     ).toEqual({
       skunk: 'Held a team to nothing. They are still blaming the table.',
-      heartbreaker: 'Won one past 21. Somebody is still thinking about it.',
+      heartbreaker: 'Won one past the target. Somebody is still thinking about it.',
       rookie: 'Under 10 games in. The rating is still guessing.',
       ghost: 'No games in 21 days. The table has moved on.',
     })

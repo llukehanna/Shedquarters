@@ -36,7 +36,7 @@ export const BADGE_COPY: Record<BadgeKind, { name: string; blurb: string }> = {
   },
   heartbreaker: {
     name: 'Heartbreaker',
-    blurb: 'Won one past 21. Somebody is still thinking about it.',
+    blurb: 'Won one past the target. Somebody is still thinking about it.',
   },
   rookie: {
     name: 'Rookie',
@@ -125,7 +125,10 @@ export function earnedBadgesFromLive(
     // winner was exactly WIN_BY clear. Both halves are checked rather than
     // inferred from each other, so a malformed row (say a recorded 30–10)
     // can never masquerade as a heartbreaker.
-    if (winnerScore > TARGET_SCORE && winnerScore - loserScore === WIN_BY) heartbreakers++
+    // The target is the game's own: 21 for beer die, whatever the spikeball
+    // game was played to.
+    const target = g.targetScore ?? TARGET_SCORE
+    if (winnerScore > target && winnerScore - loserScore === WIN_BY) heartbreakers++
   }
 
   const badges: Badge[] = []

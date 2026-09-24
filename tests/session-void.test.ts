@@ -49,6 +49,7 @@ const game = {
   id: 'g1',
   team_a: ['a1', 'a2', 'a3'],
   team_b: ['b1', 'b2', 'b3'],
+  target_score: 21,
 }
 
 beforeEach(() => {
@@ -61,7 +62,7 @@ describe('voidLastGame', () => {
 
     const order = h.calls.map((c) => `${c.via}:${c.text.split(' ').slice(0, 4).join(' ')}`)
     expect(order).toEqual([
-      'sql:select id, team_a, team_b',
+      'sql:select id, team_a, team_b,',
       'sql:BEGIN',
       'tx:update games set voided',
       'tx:update sessions set holders',
@@ -82,7 +83,7 @@ describe('voidLastGame', () => {
     await voidLastGame('s1')
 
     expect(h.calls.map((c) => c.text)).toEqual([
-      'select id, team_a, team_b from games where session_id = ? and voided = false order by seq desc limit 1',
+      'select id, team_a, team_b, target_score from games where session_id = ? and voided = false order by seq desc limit 1',
     ])
   })
 })

@@ -2,21 +2,21 @@ import Link from 'next/link'
 import { getPlayers, getGames } from '@/lib/queries'
 import type { Player } from '@/lib/queries'
 import { headToHeadSummary, headToHeadNote } from '@/lib/domain/stats'
-import { buildH2hHref, firstParam, type H2hSelection } from '@/lib/ui/h2h'
+import { buildH2hHref, firstParam, h2hPath, type H2hSelection } from '@/lib/ui/h2h'
 import { TopBar } from '@/components/ui/TopBar'
+import { SportSwitch } from '@/components/ui/SportSwitch'
+import { parseSport, withSport } from '@/lib/domain/sport'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HeadToHeadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ a?: string | string[]; b?: string | string[] }>
+  searchParams: Promise<{ a?: string | string[]; b?: string | string[]; sport?: string | string[] }>
 }) {
-  const [{ a: aRaw, b: bRaw }, players, games] = await Promise.all([
-    searchParams,
-    getPlayers(),
-    getGames(),
-  ])
+  const { a: aRaw, b: bRaw, sport: sportRaw } = await searchParams
+  const sport = parseSport(sportRaw)
+  const [players, games] = await Promise.all([getPlayers(), getGames(sport)])
   const aParam = firstParam(aRaw)
   const bParam = firstParam(bRaw)
 
@@ -26,7 +26,7 @@ export default async function HeadToHeadPage({
   // somehow names the same player twice, just treat the second slot as empty.
   const b = bMatch && bMatch !== a ? bMatch : undefined
 
-  const selection: H2hSelection = { a, b }
+  const selection: H2hSelection = { a, b, sport }
   const nameOf = (id: string) => players.find((p) => p.id === id)?.displayName ?? '?'
 
   // One walk over history for both the opposite-team record and the
@@ -38,12 +38,21 @@ export default async function HeadToHeadPage({
 
   return (
     <main>
-      <TopBar right={<Link href="/" className="eyebrow flex min-h-11 items-center text-cream">← Ranks</Link>} />
+      <TopBar
+        right={
+          <Link href={withSport('/', sport)} className="eyebrow flex min-h-11 items-center text-cream">
+            ← Ranks
+          </Link>
+        }
+      />
 
       <h1 className="headline mt-2 text-[46px]">
         Head <span className="text-gold">to Head</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">Pick two names for the whole record between them</p>
+
+      {/* Keeps both picks and changes only the ladder. */}
+      <SportSwitch sport={sport} path={h2hPath({ a, b })} />
 
       <div className="grid grid-cols-2 gap-2">
         <Slot label="Player one" name={a ? nameOf(a) : undefined} />

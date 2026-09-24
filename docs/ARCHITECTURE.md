@@ -42,7 +42,7 @@ The reason is testing: `vitest` runs in Node with no DOM, so a rule that only ex
 
 | Route | Access | What it is |
 |---|---|---|
-| `/` | public | Power rankings: rating, record, streak, 7-day movement, "Shed of shame" |
+| `/` | public | Power rankings: rating, record, streak, 7-day movement, "Shed of shame". Every public page takes `?sport=spikeball`; beer die is the default |
 | `/players/[id]` | public | Record, win %, point differential, badges, head-to-head list |
 | `/games` | public | Every game, newest first, grouped by night, with each side's rating change |
 | `/h2h?a=&b=` | public | Two players' record against each other and as teammates |
@@ -59,6 +59,8 @@ A signed-out request to a signed-in page redirects to `/gate`, never to an error
 ## The table as a state machine
 
 A night is a `sessions` row. Its `holders` and `challengers` columns are the table: who is holding it and who is challenging right now.
+Its `game_type` is fixed when the night starts (beer die or spikeball, from `lib/domain/sport.ts`), and every game logged against it gets the same sport.
+Spikeball lets the table pick 25, 15 or 11 before each game. The pick travels in the queued game itself (`targetScore`), so a game waiting in the queue is still recorded as what it was played to, and the night's `target_score` follows the last game logged.
 
 ```
 startSession(holders, challengers)

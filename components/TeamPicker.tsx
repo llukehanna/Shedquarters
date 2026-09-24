@@ -11,12 +11,15 @@ import type { TeamSize } from '@/components/ui/TeamSizeToggle'
 export function TeamPicker({
   players,
   size,
+  holds = 'table',
   picked,
   onToggle,
   onClear,
 }: {
   players: Player[]
   size: TeamSize
+  /** What the first team is holding: the table for beer die, the net for spikeball. */
+  holds?: 'table' | 'net'
   picked: string[]
   onToggle: (id: string) => void
   onClear: () => void
@@ -24,7 +27,7 @@ export function TeamPicker({
   const target = size * 2
   const name = (id: string) => players.find((p) => p.id === id)?.displayName ?? '?'
   const teams: Array<{ label: string; ids: string[]; holding: boolean }> = [
-    { label: 'Holding the table', ids: picked.slice(0, size), holding: true },
+    { label: `Holding the ${holds}`, ids: picked.slice(0, size), holding: true },
     { label: 'Challengers', ids: picked.slice(size, target), holding: false },
   ]
 

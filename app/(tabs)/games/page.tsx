@@ -5,32 +5,49 @@ import { groupByNight, liveGameCount } from '@/lib/domain/game-log'
 import { getRatingDeltas } from '@/lib/ratings-cache'
 import type { GameDelta } from '@/lib/domain/ratings'
 import { TopBar } from '@/components/ui/TopBar'
+import { SportSwitch } from '@/components/ui/SportSwitch'
+import { SPORT_RULES, parseSport, withSport } from '@/lib/domain/sport'
 import { Pill } from '@/components/ui/Pill'
 import { countLabel, formatNightDate, formatDiffAverage } from '@/lib/ui/format'
 
 export const dynamic = 'force-dynamic'
 
-export default async function GamesPage() {
+export default async function GamesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sport?: string | string[] }>
+}) {
+  const sport = parseSport((await searchParams).sport)
   // getRatingDeltas() shares its scan of `games` and its openskill replay
   // with the ranks/profile pages' getRatings() — both are cached behind the
   // same fingerprint in lib/ratings-cache.ts, so this page never re-fetches
   // the whole table or re-replays history on its own. Rows below just look
   // their own delta up by `ord`.
   const [{ games, truncated }, players, deltas] = await Promise.all([
-    getGameLog(),
+    getGameLog(sport),
     getPlayers(),
-    getRatingDeltas(),
+    getRatingDeltas(sport),
   ])
   const nights = groupByNight(games)
 
   return (
     <main>
-      <TopBar right={<Link href="/" className="eyebrow flex min-h-11 items-center text-cream">← Ranks</Link>} />
+      <TopBar
+        right={
+          <Link href={withSport('/', sport)} className="eyebrow flex min-h-11 items-center text-cream">
+            ← Ranks
+          </Link>
+        }
+      />
 
       <h1 className="headline mt-2 text-[46px]">
         Game <span className="text-gold">Log</span>
       </h1>
-      <p className="eyebrow mt-2 mb-4">Every result · {countLabel(liveGameCount(games), 'game')}</p>
+      <p className="eyebrow mt-2 mb-4">
+        {SPORT_RULES[sport].name} · {countLabel(liveGameCount(games), 'game')}
+      </p>
+
+      <SportSwitch sport={sport} path="/games" />
 
       {nights.length === 0 ? (
         <p className="surface rounded-2xl px-3 py-4 text-[13px] text-muted">

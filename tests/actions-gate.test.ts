@@ -67,7 +67,7 @@ describe('the action gate', () => {
     requirePasscode.mockResolvedValue(undefined)
     startSession.mockResolvedValue('session-1')
     await expect(actions.startSession(['a'], ['b'])).resolves.toBe('session-1')
-    expect(startSession).toHaveBeenCalledWith(['a'], ['b'])
+    expect(startSession).toHaveBeenCalledWith(['a'], ['b'], {})
   })
 })
 

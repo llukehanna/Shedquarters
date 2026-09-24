@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db'
 import { computeRatingsAndDeltas, type PlayerRating, type GameDelta } from '@/lib/domain/ratings'
 import { getGames, getFingerprint } from '@/lib/queries'
+import type { Sport } from '@/lib/domain/sport'
 
 const deltasToJson = (deltas: Map<number, GameDelta>): Record<string, GameDelta> => {
   const out: Record<string, GameDelta> = {}
@@ -12,14 +13,15 @@ const deltasFromJson = (json: Record<string, GameDelta>): Map<number, GameDelta>
   new Map(Object.entries(json).map(([ord, d]) => [Number(ord), d]))
 
 async function writeCache(
+  sport: Sport,
   fingerprint: string,
   ratings: PlayerRating[],
   deltas: Map<number, GameDelta>,
 ): Promise<void> {
   await sql`
-    insert into ratings_cache (id, fingerprint, payload, deltas, computed_at)
-    values (1, ${fingerprint}, ${sql.json(ratings)}, ${sql.json(deltasToJson(deltas))}, now())
-    on conflict (id) do update
+    insert into ratings_cache_by_sport (game_type, fingerprint, payload, deltas, computed_at)
+    values (${sport}, ${fingerprint}, ${sql.json(ratings)}, ${sql.json(deltasToJson(deltas))}, now())
+    on conflict (game_type) do update
       set fingerprint = excluded.fingerprint,
           payload     = excluded.payload,
           deltas      = excluded.deltas,
@@ -38,29 +40,31 @@ async function writeCache(
  * didn't just call this.
  */
 async function computeAndCache(
+  sport: Sport,
   fingerprint: string,
 ): Promise<{ ratings: PlayerRating[]; deltas: Map<number, GameDelta> }> {
-  const { ratings, deltas } = computeRatingsAndDeltas(await getGames())
+  const { ratings, deltas } = computeRatingsAndDeltas(await getGames(sport))
   const sorted = [...ratings.values()].sort((a, b) => b.ordinal - a.ordinal)
-  await writeCache(fingerprint, sorted, deltas)
+  await writeCache(sport, fingerprint, sorted, deltas)
   return { ratings: sorted, deltas }
 }
 
-export async function getRatings(): Promise<PlayerRating[]> {
-  const fingerprint = await getFingerprint()
+/** One sport's ratings, best first. A player who has never played it isn't in the list. */
+export async function getRatings(sport: Sport): Promise<PlayerRating[]> {
+  const fingerprint = await getFingerprint(sport)
 
   // Selects only `payload` — never `deltas` — so the hottest pages (the
   // rankings and player-profile pages, which only ever want ratings) don't
   // pay to fetch and JSON-parse a blob of every live game's delta just to
   // throw it away.
   const [cached] = await sql`
-    select fingerprint, payload from ratings_cache where id = 1
+    select fingerprint, payload from ratings_cache_by_sport where game_type = ${sport}
   `
   if (cached && cached.fingerprint === fingerprint) {
     return cached.payload as PlayerRating[]
   }
 
-  return (await computeAndCache(fingerprint)).ratings
+  return (await computeAndCache(sport, fingerprint)).ratings
 }
 
 /**
@@ -70,18 +74,15 @@ export async function getRatings(): Promise<PlayerRating[]> {
  * (re)writes `payload`, so `getRatings` doesn't have to replay again next
  * time either. A voided game has no entry.
  */
-export async function getRatingDeltas(): Promise<Map<number, GameDelta>> {
-  const fingerprint = await getFingerprint()
+export async function getRatingDeltas(sport: Sport): Promise<Map<number, GameDelta>> {
+  const fingerprint = await getFingerprint(sport)
 
   const [cached] = await sql`
-    select fingerprint, deltas from ratings_cache where id = 1
+    select fingerprint, deltas from ratings_cache_by_sport where game_type = ${sport}
   `
-  // A fingerprint match with a null `deltas` column is a row written before
-  // this column existed (see lib/schema.sql) — a cache miss for deltas
-  // specifically, not a crash and not a reason to trust a stale shape.
-  if (cached && cached.fingerprint === fingerprint && cached.deltas) {
+  if (cached && cached.fingerprint === fingerprint) {
     return deltasFromJson(cached.deltas as Record<string, GameDelta>)
   }
 
-  return (await computeAndCache(fingerprint)).deltas
+  return (await computeAndCache(sport, fingerprint)).deltas
 }

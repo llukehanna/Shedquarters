@@ -1,7 +1,18 @@
 import { rating, rate, ordinal, type Rating } from 'openskill'
+import { TARGET_SCORE } from './score'
 
-/** Score gap at or below which a win counts as ordinary. Tunable; a replay re-derives everything. */
+/** Score gap at or below which a win to 21 counts as ordinary. Tunable; a replay re-derives everything. */
 export const MARGIN = 5
+
+/**
+ * `MARGIN` scaled to a game's length, so a shorter game needs a
+ * proportionally smaller gap before the scoreline starts to count: 3 for a
+ * game to 11, 4 for 15, 5 for 21, 6 for 25. A 11–5 spikeball game is as
+ * lopsided as a 21–11 one, not an ordinary win.
+ */
+export function marginFor(target: number = TARGET_SCORE): number {
+  return Math.max(1, Math.round((MARGIN * target) / TARGET_SCORE))
+}
 
 /** Games required before a player's rating stops being labelled provisional. */
 export const PROVISIONAL_GAMES = 10
@@ -21,6 +32,8 @@ export type GameRecord = {
   scoreA: number
   scoreB: number
   voided: boolean
+  /** What the game was played to. Absent means 21, which is every game from before there was a choice. */
+  targetScore?: number
 }
 
 export type PlayerRating = {
@@ -99,7 +112,6 @@ function average(values: number[]): number {
  * unchanged by this: it still returns only the final ratings map.
  */
 export function computeRatingsAndDeltas(games: GameRecord[], opts: { margin?: number } = {}): ReplayResult {
-  const margin = opts.margin ?? MARGIN
   const tallies = new Map<string, Tally>()
   const deltas = new Map<number, GameDelta>()
 
@@ -136,7 +148,7 @@ export function computeRatingsAndDeltas(games: GameRecord[], opts: { margin?: nu
     // the winner.
     const [ratedWinners, ratedLosers] = rate(
       [winners.map((id) => get(id).rating), losers.map((id) => get(id).rating)],
-      { score: [winScore, loseScore], margin },
+      { score: [winScore, loseScore], margin: opts.margin ?? marginFor(g.targetScore) },
     )
 
     winners.forEach((id, i) => {

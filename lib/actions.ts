@@ -33,9 +33,13 @@ async function gate(): Promise<void> {
   }
 }
 
-export async function startSession(holders: string[], challengers: string[]): Promise<string> {
+export async function startSession(
+  holders: string[],
+  challengers: string[],
+  opts: session.StartOptions = {},
+): Promise<string> {
   await gate()
-  const id = await session.startSession(holders, challengers)
+  const id = await session.startSession(holders, challengers, opts)
   revalidatePath('/table')
   return id
 }
