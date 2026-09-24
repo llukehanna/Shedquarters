@@ -9,8 +9,8 @@ import { PROVISIONAL_GAMES } from '@/lib/domain/ratings'
 import { TopBar } from '@/components/ui/TopBar'
 import { RankRow } from '@/components/ui/RankRow'
 import { InstallHint } from '@/components/InstallHint'
-import { SportSwitch } from '@/components/ui/SportSwitch'
-import { SPORT_RULES, parseSport, withSport } from '@/lib/domain/sport'
+import { SPORT_RULES } from '@/lib/domain/sport'
+import { currentSport } from '@/lib/sport-cookie'
 import { formatRating, formatRecord, formatPercent, formatDiff, countLabel } from '@/lib/ui/format'
 
 export const dynamic = 'force-dynamic'
@@ -21,12 +21,8 @@ const SHAME_LABELS: Record<ShameEntry['slot'], string> = {
   cursed: 'Cursed',
 }
 
-export default async function Ranks({
-  searchParams,
-}: {
-  searchParams: Promise<{ sport?: string | string[] }>
-}) {
-  const sport = parseSport((await searchParams).sport)
+export default async function Ranks() {
+  const sport = await currentSport()
   const [ratings, players, games, table] = await Promise.all([
     getRatings(sport),
     getPlayers(),
@@ -36,7 +32,7 @@ export default async function Ranks({
     // to misuse) — getGames() stays untouched for the ratings cache and
     // lib/domain/stats's other callers.
     getGameLogAll(sport),
-    getActiveTable(),
+    getActiveTable(sport),
   ])
   const name = (id: string) => players.find((p) => p.id === id)?.displayName ?? '?'
   const runs = longestRuns(games).slice(0, 3)
@@ -91,7 +87,6 @@ export default async function Ranks({
         {SPORT_RULES[sport].name} · {countLabel(played, 'game')}
       </p>
 
-      <SportSwitch sport={sport} path="/" />
 
       {ratings.length === 0 ? (
         <section className="mt-12 text-center">
@@ -120,7 +115,7 @@ export default async function Ranks({
                 name={name(r.playerId)}
                 rating={formatRating(r.ordinal)}
                 record={formatRecord(r.wins, r.games)}
-                href={withSport(`/players/${r.playerId}`, sport)}
+                href={`/players/${r.playerId}`}
                 first={i === 0}
                 provisional={r.provisional}
                 streak={streaksById.get(r.playerId) ?? null}
@@ -187,7 +182,7 @@ export default async function Ranks({
       )}
 
       <Link
-        href={withSport('/games', sport)}
+        href="/games"
         className="surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-cream"
       >
         Every game
@@ -195,7 +190,7 @@ export default async function Ranks({
       </Link>
 
       <Link
-        href={withSport('/h2h', sport)}
+        href="/h2h"
         className="surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-cream"
       >
         Head to head

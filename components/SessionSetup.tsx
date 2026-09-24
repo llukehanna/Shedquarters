@@ -1,21 +1,25 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { unstable_rethrow } from 'next/navigation'
+import { unstable_rethrow, useRouter } from 'next/navigation'
 import type { Player } from '@/lib/queries'
 import { startSession } from '@/lib/actions'
 import { TopBar } from '@/components/ui/TopBar'
 import { Button } from '@/components/ui/Button'
 import { TeamSizeToggle, type TeamSize } from '@/components/ui/TeamSizeToggle'
 import { TeamPicker } from '@/components/TeamPicker'
-import { SportToggle, TargetToggle } from '@/components/ui/SportSwitch'
+import { TargetToggle } from '@/components/ui/TargetToggle'
 import { loadSetupState, saveSetupState, clearSetupState } from '@/lib/client/persist'
-import { DEFAULT_SPORT, SPORT_RULES, type Sport } from '@/lib/domain/sport'
+import { SPORT_RULES, type Sport } from '@/lib/domain/sport'
 
-export function SessionSetup({ players }: { players: Player[] }) {
-  const [sport, setSport] = useState<Sport>(DEFAULT_SPORT)
-  const [target, setTarget] = useState(SPORT_RULES[DEFAULT_SPORT].defaultTarget)
-  const [size, setSize] = useState<TeamSize>(3)
+/**
+ * Starting a night for the sport the top-bar pill is on. Each sport has its
+ * own setup screen (and its own saved pick) because each has its own night.
+ */
+export function SessionSetup({ sport, players }: { sport: Sport; players: Player[] }) {
+  const router = useRouter()
+  const [target, setTarget] = useState(SPORT_RULES[sport].defaultTarget)
+  const [size, setSize] = useState<TeamSize>(SPORT_RULES[sport].teamSizes[0])
   const [picked, setPicked] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
@@ -33,18 +37,6 @@ export function SessionSetup({ players }: { players: Player[] }) {
     setPicked([])
   }
 
-  // A different game can mean a different team size (spikeball is 2v2
-  // only), so the pick starts over rather than keeping a half-built 3v3.
-  function changeSport(next: Sport) {
-    const rules = SPORT_RULES[next]
-    setSport(next)
-    setTarget(rules.defaultTarget)
-    if (!rules.teamSizes.includes(size)) {
-      setSize(rules.teamSizes[0])
-      setPicked([])
-    }
-  }
-
   function toggle(id: string) {
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length < needed ? [...p, id] : p))
   }
@@ -57,16 +49,15 @@ export function SessionSetup({ players }: { players: Player[] }) {
   useEffect(() => {
     if (restoredRef.current) return
     restoredRef.current = true
-    const restored = loadSetupState()
-    const restoredSport = restored?.sport ?? DEFAULT_SPORT
-    const rules = SPORT_RULES[restoredSport]
-    const restoredSize = restored?.size ?? 3
+    const restored = loadSetupState(sport)
+    const rules = SPORT_RULES[sport]
+    const restoredSize = restored?.size ?? rules.teamSizes[0]
     const sizeFits = rules.teamSizes.includes(restoredSize)
-    setSport(restoredSport)
     setTarget(restored?.target ?? rules.defaultTarget)
     setSize(sizeFits ? restoredSize : rules.teamSizes[0])
     setPicked(sizeFits ? (restored?.picked ?? []) : [])
     setHydrated(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Keep it live from the moment the restore above has run, so a tab switch
@@ -75,7 +66,7 @@ export function SessionSetup({ players }: { players: Player[] }) {
   // for what actually gets sent to the server.
   useEffect(() => {
     if (!hydrated) return
-    saveSetupState({ picked, size, sport, target })
+    saveSetupState(sport, { picked, size, target })
   }, [hydrated, picked, size, sport, target])
 
   const ready = picked.length === needed
@@ -84,12 +75,19 @@ export function SessionSetup({ players }: { players: Player[] }) {
     setError(null)
     setStarting(true)
     try {
-      await startSession(picked.slice(0, size), picked.slice(size, needed), {
+      const result = await startSession(picked.slice(0, size), picked.slice(size, needed), {
         gameType: sport,
         targetScore: target,
       })
+      if (!result.ok) {
+        // Another phone started this sport's night first. Theirs is the night:
+        // pull it up rather than offering a second one.
+        setError(`A ${SPORT_RULES[sport].name.toLowerCase()} night is already going. Pulling it up…`)
+        router.refresh()
+        return
+      }
       // The pick belongs to setup, not to the game that just started.
-      clearSetupState()
+      clearSetupState(sport)
     } catch (e) {
       // A signed-out phone is redirected to the gate by the action; that
       // redirect travels as a thrown error and must not be swallowed here.
@@ -105,24 +103,23 @@ export function SessionSetup({ players }: { players: Player[] }) {
 
   return (
     <main>
-      <TopBar
-        right={
-          sizes.length > 1 ? (
-            <TeamSizeToggle size={size} onChange={changeSize} />
-          ) : (
-            <span className="font-display text-[15px] font-extrabold text-gold">
-              {size}V{size}
-            </span>
-          )
-        }
-      />
+      <TopBar />
 
       <h1 className="headline mt-2 text-[42px]">
         Start a <span className="text-gold">game</span>
       </h1>
 
       <div className="mt-3 flex flex-col gap-2">
-        <SportToggle sport={sport} onChange={changeSport} />
+        {sizes.length > 1 ? (
+          <div className="flex items-center gap-3">
+            <span className="eyebrow shrink-0">Teams</span>
+            <TeamSizeToggle size={size} onChange={changeSize} />
+          </div>
+        ) : (
+          <p className="eyebrow">
+            Teams <span className="ml-2 font-display text-[15px] font-extrabold text-gold">{size}V{size}</span>
+          </p>
+        )}
         <TargetToggle sport={sport} target={target} onChange={setTarget} />
       </div>
 

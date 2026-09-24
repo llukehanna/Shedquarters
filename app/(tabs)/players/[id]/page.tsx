@@ -7,21 +7,19 @@ import { earnedBadgesFromLive } from '@/lib/domain/badges'
 import { TopBar } from '@/components/ui/TopBar'
 import { Pill } from '@/components/ui/Pill'
 import { PlayerBadges } from '@/components/ui/PlayerBadges'
-import { SportSwitch } from '@/components/ui/SportSwitch'
-import { SPORT_RULES, parseSport, withSport } from '@/lib/domain/sport'
+import { SPORT_RULES } from '@/lib/domain/sport'
+import { currentSport } from '@/lib/sport-cookie'
 import { formatRating, formatRecord, formatPercent, countLabel, formatDiff, formatDiffAverage } from '@/lib/ui/format'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PlayerPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ sport?: string | string[] }>
 }) {
   const { id } = await params
-  const sport = parseSport((await searchParams).sport)
+  const sport = await currentSport()
   // getGameLogAll() rather than getGames(): same rows, plus the timestamp
   // the Ghost badge needs. Everything else on this page takes a GameRecord
   // and is unaffected by the extra column, so this stays one query.
@@ -50,7 +48,7 @@ export default async function PlayerPage({
 
   return (
     <main>
-      <TopBar right={<Link href={withSport('/', sport)} className="eyebrow text-cream">← Ranks</Link>} />
+      <TopBar right={<Link href="/" className="eyebrow text-cream">← Ranks</Link>} />
 
       <section className="cardinal-panel relative mt-2 overflow-hidden rounded-2xl p-4">
         {rating && (
@@ -99,16 +97,13 @@ export default async function PlayerPage({
         </div>
       )}
 
-      <div className="mt-3">
-        <SportSwitch sport={sport} path={`/players/${id}`} />
-      </div>
 
       <PlayerBadges badges={badges} />
 
       <section className="mt-5">
         <h2 className="mb-2 flex items-baseline justify-between">
           <span className="eyebrow">Head to head</span>
-          <Link href={withSport(`/h2h?a=${id}`, sport)} className="eyebrow flex min-h-11 items-center text-gold">
+          <Link href={`/h2h?a=${id}`} className="eyebrow flex min-h-11 items-center text-gold">
             vs someone →
           </Link>
         </h2>
@@ -120,7 +115,7 @@ export default async function PlayerPage({
           <ul className="surface rounded-2xl px-3">
             {records.map(({ p, h }) => (
               <li key={p.id} className="flex min-h-11 items-center border-b border-gold/8 last:border-b-0">
-                <Link href={withSport(`/players/${p.id}`, sport)} className="flex min-h-11 flex-1 items-center self-stretch font-display text-[17px] font-bold uppercase">
+                <Link href={`/players/${p.id}`} className="flex min-h-11 flex-1 items-center self-stretch font-display text-[17px] font-bold uppercase">
                   {p.displayName}
                 </Link>
                 {h.wins > h.losses && <Pill tone="gold">Owns</Pill>}

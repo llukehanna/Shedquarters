@@ -10,6 +10,8 @@ import type { Table } from '@/lib/domain/table'
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh }),
+  usePathname: () => '/table',
+  useSearchParams: () => new URLSearchParams(),
   unstable_rethrow: () => {},
 }))
 const actions = vi.hoisted(() => ({

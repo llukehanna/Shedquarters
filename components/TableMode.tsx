@@ -33,7 +33,7 @@ import { Pill } from '@/components/ui/Pill'
 import { Sheet } from '@/components/ui/Sheet'
 import { TeamButton } from '@/components/ui/TeamButton'
 import { TeamSizeToggle, type TeamSize } from '@/components/ui/TeamSizeToggle'
-import { TargetToggle } from '@/components/ui/SportSwitch'
+import { TargetToggle } from '@/components/ui/TargetToggle'
 import { LineupEditor } from '@/components/LineupEditor'
 import {
   createLineup,
@@ -145,8 +145,8 @@ export function TableMode({
   // survive indefinitely and resurface the next time this phone lands back
   // on SessionSetup, for a night that has nothing to do with it.
   useEffect(() => {
-    clearSetupState()
-  }, [])
+    clearSetupState(sport)
+  }, [sport])
 
   // Restore which screen was open and the challengers picked so far, after a
   // tab switch (Table ⇄ Ranks). Runs once, after mount, so the server-
@@ -500,18 +500,15 @@ export function TableMode({
 
     return (
       <main>
-        <TopBar
-          live
-          right={
-            <span className={`text-[12px] ${syncFailing || dead > 0 ? 'text-down' : 'text-muted'}`}>
-              <span
-                aria-hidden
-                className={`mr-1.5 inline-block h-[7px] w-[7px] rounded-full ${syncFailing || dead > 0 ? 'bg-down' : queued > 0 ? 'bg-gold' : 'bg-up'}`}
-              />
-              {status}
-            </span>
-          }
-        />
+        <TopBar live />
+        {/* Under the bar rather than in it: the bar's right side is the sport pill. */}
+        <p className={`-mt-1 mb-1 text-right text-[12px] ${syncFailing || dead > 0 ? 'text-down' : 'text-muted'}`}>
+          <span
+            aria-hidden
+            className={`mr-1.5 inline-block h-[7px] w-[7px] rounded-full ${syncFailing || dead > 0 ? 'bg-down' : queued > 0 ? 'bg-gold' : 'bg-up'}`}
+          />
+          {status}
+        </p>
 
         {/* A dead-lettered game was logged at the table and permanently
             refused by the server. It is off the queue so it can't block
@@ -704,19 +701,17 @@ export function TableMode({
 
     return (
       <main>
-        <TopBar
-          live
-          right={
-            // Spikeball is 2v2 only, so there is no size to change.
-            rules.teamSizes.length > 1 ? (
-              <TeamSizeToggle size={effectiveTeamsLineup.size} onChange={changeTeamsSize} />
-            ) : undefined
-          }
-        />
+        <TopBar live />
 
-        <h1 className="headline mt-3 text-[40px]">
-          Change <span className="text-gold">teams</span>
-        </h1>
+        <div className="mt-3 flex items-end justify-between gap-3">
+          <h1 className="headline text-[40px]">
+            Change <span className="text-gold">teams</span>
+          </h1>
+          {/* Spikeball is 2v2 only, so there is no size to change. */}
+          {rules.teamSizes.length > 1 && (
+            <TeamSizeToggle size={effectiveTeamsLineup.size} onChange={changeTeamsSize} />
+          )}
+        </div>
         <p className="mt-2 text-[13px] text-muted">
           Tap a slot, then tap who goes in it. ⇄ sends two players across.
         </p>

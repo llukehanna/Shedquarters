@@ -1,7 +1,5 @@
-import { withSport, type Sport } from '@/lib/domain/sport'
-
-/** `sport` is carried along so a pick never jumps you to the other ladder. Absent means beer die. */
-export type H2hSelection = { a?: string; b?: string; sport?: Sport }
+/** Which ladder it is comes from the sport cookie, not the URL, so it never changes with a pick. */
+export type H2hSelection = { a?: string; b?: string }
 
 /**
  * Normalizes a single search-param value. Next types a repeated query key
@@ -34,6 +32,5 @@ export function h2hPath(selection: H2hSelection): string {
   if (selection.b) params.set('b', selection.b)
 
   const qs = params.toString()
-  const path = qs ? `/h2h?${qs}` : '/h2h'
-  return selection.sport ? withSport(path, selection.sport) : path
+  return qs ? `/h2h?${qs}` : '/h2h'
 }
