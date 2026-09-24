@@ -64,7 +64,7 @@ It installs to the home screen as a web app and has its own offline screen.
 - **OpenSkill** (Plackett–Luce) for ratings
 - **Tailwind CSS 4**, **Motion** for animation
 - **Vercel**: Fluid Compute, a nightly Cron backup to Vercel Blob
-- **Vitest**: 611 tests, most of them against a real Postgres; GitHub Actions CI
+- **Vitest**: 615 tests, most of them against a real Postgres, plus jsdom component tests; GitHub Actions CI
 
 ## Running locally
 

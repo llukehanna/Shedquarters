@@ -36,7 +36,8 @@ That split means a data function can't be reached without an auth check, and can
 Components hold as little logic as possible.
 `components/LineupEditor.tsx` renders slots and forwards taps. Every lineup operation is a pure function in `lib/domain/lineup.ts`.
 `components/ui/Wordmark.tsx` holds two handlers that call into `lib/domain/easter-egg.ts`, which is a clock-injected state machine.
-The reason is testing: `vitest` runs in Node with no DOM, so a rule that only exists inside a component isn't tested.
+The reason is testing: a pure function is tested directly, in Node, while a component needs a DOM to test at all.
+Component tests do exist (`tests/*.test.tsx`, jsdom via a `// @vitest-environment jsdom` comment, Testing Library), but they cover how a screen wires things together, such as `TableMode`'s queue, sync status and Undo guard, not rules that could live in `lib/`.
 
 ## Routes
 
