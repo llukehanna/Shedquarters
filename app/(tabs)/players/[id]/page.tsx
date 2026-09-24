@@ -48,20 +48,20 @@ export default async function PlayerPage({
 
   return (
     <main>
-      <TopBar right={<Link href="/" className="eyebrow text-cream">← Ranks</Link>} />
+      <TopBar right={<Link href="/" className="eyebrow text-fg">← Ranks</Link>} />
 
-      <section className="cardinal-panel relative mt-2 overflow-hidden rounded-2xl p-4">
+      <section className="panel relative mt-2 overflow-hidden rounded-2xl p-4">
         {rating && (
-          <span aria-hidden className="headline absolute top-1 right-3 text-[78px] text-gold/20">
+          <span aria-hidden className="headline absolute top-1 right-3 text-[78px] text-accent/20">
             #{index + 1}
           </span>
         )}
-        <p className="eyebrow text-gold">
+        <p className="eyebrow text-accent">
           {rating ? `No. ${index + 1}` : me.isHousemate ? 'Housemate' : 'Guest'}
         </p>
         <h1 className="headline mt-1 text-[50px]">{me.displayName}</h1>
         {me.nicknames.length > 0 && (
-          <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[14px] text-cream/70">
+          <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[14px] text-fg/70">
             {me.nicknames.map((n) => (
               <span key={n}>&ldquo;{n}&rdquo;</span>
             ))}
@@ -70,10 +70,10 @@ export default async function PlayerPage({
         {rating ? (
           <p className="mt-2 font-mono text-[30px] font-bold">
             {formatRating(rating.ordinal)}
-            <span className="ml-2 font-body text-[11px] font-semibold text-cream/80">rating</span>
+            <span className="ml-2 font-body text-[11px] font-semibold text-fg/80">rating</span>
           </p>
         ) : (
-          <p className="mt-2 text-[13px] text-cream/80">
+          <p className="mt-2 text-[13px] text-fg/80">
             No {SPORT_RULES[sport].name.toLowerCase()} games logged yet.
           </p>
         )}
@@ -93,7 +93,7 @@ export default async function PlayerPage({
             tone={diff.total > 0 ? 'up' : diff.total < 0 ? 'down' : undefined}
             mono
           />
-          <Stat value={rating.provisional ? 'Yes' : 'No'} label="Provisional" gold={rating.provisional} />
+          <Stat value={rating.provisional ? 'Yes' : 'No'} label="Provisional" accent={rating.provisional} />
         </div>
       )}
 
@@ -103,7 +103,7 @@ export default async function PlayerPage({
       <section className="mt-5">
         <h2 className="mb-2 flex items-baseline justify-between">
           <span className="eyebrow">Head to head</span>
-          <Link href={`/h2h?a=${id}`} className="eyebrow flex min-h-11 items-center text-gold">
+          <Link href={`/h2h?a=${id}`} className="eyebrow flex min-h-11 items-center text-accent">
             vs someone →
           </Link>
         </h2>
@@ -114,11 +114,11 @@ export default async function PlayerPage({
         ) : (
           <ul className="surface rounded-2xl px-3">
             {records.map(({ p, h }) => (
-              <li key={p.id} className="flex min-h-11 items-center border-b border-gold/8 last:border-b-0">
+              <li key={p.id} className="flex min-h-11 items-center border-b border-accent/8 last:border-b-0">
                 <Link href={`/players/${p.id}`} className="flex min-h-11 flex-1 items-center self-stretch font-display text-[17px] font-bold uppercase">
                   {p.displayName}
                 </Link>
-                {h.wins > h.losses && <Pill tone="gold">Owns</Pill>}
+                {h.wins > h.losses && <Pill tone="accent">Owns</Pill>}
                 <span
                   className={`ml-3 font-mono text-[14px] font-bold ${h.wins >= h.losses ? 'text-up' : 'text-down'}`}
                 >
@@ -137,18 +137,18 @@ function Stat({
   value,
   label,
   sub,
-  gold = false,
+  accent = false,
   tone,
   mono = false,
 }: {
   value: string
   label: string
   sub?: string
-  gold?: boolean
+  accent?: boolean
   tone?: 'up' | 'down'
   mono?: boolean
 }) {
-  const toneClass = tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : gold ? 'text-gold' : ''
+  const toneClass = tone === 'up' ? 'text-up' : tone === 'down' ? 'text-down' : accent ? 'text-accent' : ''
   return (
     <div className="surface rounded-[10px] px-2.5 py-2">
       <p

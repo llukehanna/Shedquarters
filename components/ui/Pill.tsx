@@ -1,7 +1,7 @@
 const TONES = {
-  gold: 'bg-gold text-gold-ink',
-  dim: 'bg-cream/10 text-muted',
-  live: 'bg-cardinal-hi text-white',
+  accent: 'bg-accent text-accent-ink',
+  dim: 'bg-fg/10 text-muted',
+  live: 'bg-panel-hi text-white',
 } as const
 
 export function Pill({ tone, children }: { tone: keyof typeof TONES; children: React.ReactNode }) {

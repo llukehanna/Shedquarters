@@ -30,7 +30,7 @@ export function SportPill() {
   }
 
   return (
-    <nav aria-label="Game" className="flex gap-0.5 rounded-full border border-gold/15 bg-cream/5 p-[3px]">
+    <nav aria-label="Game" className="flex gap-0.5 rounded-full border border-accent/15 bg-fg/5 p-[3px]">
       {SPORTS.map((s) => {
         const on = s === sport
         return (
@@ -39,7 +39,7 @@ export function SportPill() {
             href={href(s)}
             aria-current={on ? 'page' : undefined}
             aria-label={SPORT_RULES[s].name}
-            className={`relative flex h-[30px] items-center gap-[5px] rounded-full px-2.5 font-display text-[14px] font-extrabold uppercase italic tracking-[0.04em] ${on ? 'bg-gold text-gold-ink' : 'text-muted'}`}
+            className={`relative flex h-[30px] items-center gap-[5px] rounded-full px-2.5 font-display text-[14px] font-extrabold uppercase italic tracking-[0.04em] ${on ? 'bg-accent text-accent-ink' : 'text-muted'}`}
           >
             <SportIcon sport={s} size={15} />
             {LABEL[s]}

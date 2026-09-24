@@ -15,7 +15,7 @@ export function TargetToggle({
   return (
     <div className="flex items-center gap-3">
       <span className="eyebrow shrink-0">Game to</span>
-      <div role="group" aria-label="Game to" className="flex flex-1 overflow-hidden rounded-[9px] border border-gold/15">
+      <div role="group" aria-label="Game to" className="flex flex-1 overflow-hidden rounded-[9px] border border-accent/15">
         {targets.map((t) => (
           <button
             key={t}
@@ -24,7 +24,7 @@ export function TargetToggle({
             onClick={() => {
               if (t !== target) onChange(t)
             }}
-            className={`min-h-11 flex-1 font-mono text-[17px] font-bold ${t === target ? 'bg-gold text-gold-ink' : 'text-cream'}`}
+            className={`min-h-11 flex-1 font-mono text-[17px] font-bold ${t === target ? 'bg-accent text-accent-ink' : 'text-fg'}`}
           >
             {t}
           </button>

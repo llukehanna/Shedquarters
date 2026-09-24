@@ -505,7 +505,7 @@ export function TableMode({
         <p className={`-mt-1 mb-1 text-right text-[12px] ${syncFailing || dead > 0 ? 'text-down' : 'text-muted'}`}>
           <span
             aria-hidden
-            className={`mr-1.5 inline-block h-[7px] w-[7px] rounded-full ${syncFailing || dead > 0 ? 'bg-down' : queued > 0 ? 'bg-gold' : 'bg-up'}`}
+            className={`mr-1.5 inline-block h-[7px] w-[7px] rounded-full ${syncFailing || dead > 0 ? 'bg-down' : queued > 0 ? 'bg-accent' : 'bg-up'}`}
           />
           {status}
         </p>
@@ -517,7 +517,7 @@ export function TableMode({
         {dead > 0 && (
           <div
             role="alert"
-            className="mb-2.5 rounded-xl border border-gold/50 bg-gradient-to-r from-cardinal-hi to-cardinal-deep px-3 py-2.5 text-[12.5px] leading-snug"
+            className="mb-2.5 rounded-xl border border-accent/50 bg-gradient-to-r from-panel-hi to-panel-deep px-3 py-2.5 text-[12.5px] leading-snug"
           >
             <span className="block font-display text-[15px] font-extrabold uppercase tracking-[0.04em]">
               {dead} game{dead > 1 ? 's' : ''} not recorded
@@ -530,7 +530,7 @@ export function TableMode({
                 clearDeadLettered()
                 setDead(0)
               }}
-              className="ml-2 min-h-11 rounded-md border border-cream/40 px-3 text-[12px] font-semibold"
+              className="ml-2 min-h-11 rounded-md border border-fg/40 px-3 text-[12px] font-semibold"
             >
               Dismiss
             </button>
@@ -538,18 +538,18 @@ export function TableMode({
         )}
 
         {error && (
-          <p role="alert" className="mb-2.5 rounded-xl border border-down/45 bg-cardinal-hi/25 px-3 py-2 text-[13px]">
+          <p role="alert" className="mb-2.5 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
             {error}
           </p>
         )}
 
         <div className="mt-1 mb-3 flex items-center gap-3">
           <h1 className="headline py-0.5 text-[38px]">
-            Who <span className="text-gold">won?</span>
+            Who <span className="text-accent">won?</span>
           </h1>
           {table.runLength > 0 && (
             <span className="ml-auto">
-              <Pill tone="gold">
+              <Pill tone="accent">
                 {table.runLength} game run
               </Pill>
             </span>
@@ -570,9 +570,9 @@ export function TableMode({
           onClick={() => goTo({ step: 'score', winner: 'holders' })}
         />
         <p aria-hidden className="my-2 flex items-center gap-3 text-faint">
-          <span className="h-px flex-1 bg-gold/10" />
+          <span className="h-px flex-1 bg-accent/10" />
           <span className="headline text-[15px] leading-none">VS</span>
-          <span className="h-px flex-1 bg-gold/10" />
+          <span className="h-px flex-1 bg-accent/10" />
         </p>
         <TeamButton
           label="Challengers"
@@ -592,7 +592,7 @@ export function TableMode({
 
         {/* Kept visually separate from Undo — a destructive, confirmed action
             should not sit adjacent to a routine same-sized control. */}
-        <div className="mt-12 flex justify-end border-t border-gold/10 pt-4">
+        <div className="mt-12 flex justify-end border-t border-accent/10 pt-4">
           {confirmEnd ? (
             <div className="flex w-full flex-col gap-2">
               <p className="text-[13px] text-muted">
@@ -610,7 +610,7 @@ export function TableMode({
                 >
                   Keep playing
                 </Button>
-                <Button tone="cardinal" size="md" onClick={() => void confirmedEndSession(armedToDiscard)} disabled={ending}>
+                <Button tone="panel" size="md" onClick={() => void confirmedEndSession(armedToDiscard)} disabled={ending}>
                   {ending
                     ? 'Ending…'
                     : armedToDiscard
@@ -638,17 +638,17 @@ export function TableMode({
             goTo({ step: 'winner' })
           }}
         >
-          <p className="eyebrow text-gold">{winnerNames.join(' · ')} won</p>
+          <p className="eyebrow text-accent">{winnerNames.join(' · ')} won</p>
           <div className="mt-1 flex items-end">
             <h2 className="headline text-[34px]">
-              Losing <span className="text-gold">score?</span>
+              Losing <span className="text-accent">score?</span>
             </h2>
             <span className="ml-auto font-mono text-[26px] font-bold">
               {pastTarget ? (
-                <span className="font-display text-[15px] uppercase tracking-[0.1em] text-gold">Win by 2</span>
+                <span className="font-display text-[15px] uppercase tracking-[0.1em] text-accent">Win by 2</span>
               ) : (
                 <>
-                  {target}–<span className="text-gold">?</span>
+                  {target}–<span className="text-accent">?</span>
                 </>
               )}
             </span>
@@ -674,7 +674,7 @@ export function TableMode({
               >
                 <span className="text-[22px] leading-none">{n}</span>
                 {pastTarget && (
-                  <span className="mt-0.5 font-mono text-[11px] font-bold text-gold">
+                  <span className="mt-0.5 font-mono text-[11px] font-bold text-accent">
                     {winnerScore(n, target)}–{n}
                   </span>
                 )}
@@ -683,7 +683,7 @@ export function TableMode({
             <button
               type="button"
               onClick={() => setPastTarget((d) => !d)}
-              className={`min-h-12 rounded-[10px] border border-gold/35 font-display text-[15px] font-extrabold uppercase tracking-[0.06em] text-gold ${pastTarget ? 'col-span-4' : plainSpan}`}
+              className={`min-h-12 rounded-[10px] border border-accent/35 font-display text-[15px] font-extrabold uppercase tracking-[0.06em] text-accent ${pastTarget ? 'col-span-4' : plainSpan}`}
             >
               {pastTarget
                 ? `← Back to 0–${deuceLine(target)}`
@@ -705,7 +705,7 @@ export function TableMode({
 
         <div className="mt-3 flex items-end justify-between gap-3">
           <h1 className="headline text-[40px]">
-            Change <span className="text-gold">teams</span>
+            Change <span className="text-accent">teams</span>
           </h1>
           {/* Spikeball is 2v2 only, so there is no size to change. */}
           {rules.teamSizes.length > 1 && (
@@ -717,7 +717,7 @@ export function TableMode({
         </p>
 
         {error && (
-          <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-cardinal-hi/25 px-3 py-2 text-[13px]">
+          <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
             {error}
           </p>
         )}
@@ -764,12 +764,12 @@ export function TableMode({
   return (
     <main>
       <TopBar live />
-      <Pill tone="gold">
+      <Pill tone="accent">
         Final {winnerScore(phase.loserScore, target)}–{phase.loserScore}
       </Pill>
-      {tax && <p className="mt-2 text-[13px] leading-snug font-semibold text-gold">{tax}</p>}
+      {tax && <p className="mt-2 text-[13px] leading-snug font-semibold text-accent">{tax}</p>}
       <h1 className="headline mt-3 text-[40px]">
-        Next {requiredChallengers} <span className="text-gold">up</span>
+        Next {requiredChallengers} <span className="text-accent">up</span>
       </h1>
       <p className="mt-2 text-[13px] text-muted">
         {staying.map(name).join(' · ')} stay on. Pick who&apos;s challenging.
@@ -792,7 +792,7 @@ export function TableMode({
                         : cur,
                   )
                 }
-                className={`min-h-11 rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-gold bg-gold text-gold-ink' : 'surface'}`}
+                className={`min-h-11 rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface'}`}
               >
                 {p.displayName}
               </button>

@@ -97,13 +97,13 @@ export function Sheet({
             aria-modal="true"
             aria-label={label}
             tabIndex={-1}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[22px] border-t border-gold/35 bg-gradient-to-b from-sheet-top to-sheet-bottom px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[22px] border-t border-accent/35 bg-gradient-to-b from-sheet-top to-sheet-bottom px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 32, stiffness: 320 }}
           >
-            <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-cream/25" />
+            <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-fg/25" />
             {children}
           </motion.div>
         </>

@@ -106,7 +106,7 @@ export function SessionSetup({ sport, players }: { sport: Sport; players: Player
       <TopBar />
 
       <h1 className="headline mt-2 text-[42px]">
-        Start a <span className="text-gold">game</span>
+        Start a <span className="text-accent">game</span>
       </h1>
 
       <div className="mt-3 flex flex-col gap-2">
@@ -117,7 +117,7 @@ export function SessionSetup({ sport, players }: { sport: Sport; players: Player
           </div>
         ) : (
           <p className="eyebrow">
-            Teams <span className="ml-2 font-display text-[15px] font-extrabold text-gold">{size}V{size}</span>
+            Teams <span className="ml-2 font-display text-[15px] font-extrabold text-accent">{size}V{size}</span>
           </p>
         )}
         <TargetToggle sport={sport} target={target} onChange={setTarget} />
@@ -130,7 +130,7 @@ export function SessionSetup({ sport, players }: { sport: Sport; players: Player
       <TeamPicker players={players} size={size} holds={SPORT_RULES[sport].holds} picked={picked} onToggle={toggle} onClear={() => setPicked([])} />
 
       {error && (
-        <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-cardinal-hi/25 px-3 py-2 text-[13px]">
+        <p role="alert" className="mt-3 rounded-xl border border-down/45 bg-panel-hi/25 px-3 py-2 text-[13px]">
           {error}
         </p>
       )}

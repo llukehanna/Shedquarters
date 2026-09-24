@@ -29,12 +29,12 @@ export default async function GamesPage() {
   return (
     <main>
       <TopBar />
-      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-cream">
+      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
         ← Ranks
       </Link>
 
       <h1 className="headline text-[46px]">
-        Game <span className="text-gold">Log</span>
+        Game <span className="text-accent">Log</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">
         {SPORT_RULES[sport].name} · {countLabel(liveGameCount(games), 'game')}
@@ -49,7 +49,7 @@ export default async function GamesPage() {
         nights.map((night) => (
           <section key={night.sessionId} className="mt-6 first:mt-0">
             <h2 className="mb-2 flex items-baseline justify-between">
-              <span className="eyebrow text-gold">{formatNightDate(night.date)}</span>
+              <span className="eyebrow text-accent">{formatNightDate(night.date)}</span>
               <span className="eyebrow text-faint">{countLabel(liveGameCount(night.games), 'game')}</span>
             </h2>
             <ul className="flex flex-col gap-2">
@@ -90,13 +90,13 @@ function GameRow({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p
-            className={`flex items-baseline gap-1.5 font-display text-[15px] font-bold leading-snug uppercase text-gold ${voided ? 'line-through' : ''}`}
+            className={`flex items-baseline gap-1.5 font-display text-[15px] font-bold leading-snug uppercase text-accent ${voided ? 'line-through' : ''}`}
           >
             <span className="min-w-0">{namesOf(winnerIds, players)}</span>
             {delta && <RatingDelta value={delta.winnerDelta} />}
           </p>
           <p
-            className={`mt-0.5 flex items-baseline gap-1.5 font-display text-[13px] font-semibold leading-snug uppercase text-cream/60 ${voided ? 'line-through' : ''}`}
+            className={`mt-0.5 flex items-baseline gap-1.5 font-display text-[13px] font-semibold leading-snug uppercase text-fg/60 ${voided ? 'line-through' : ''}`}
           >
             <span className="min-w-0">{namesOf(loserIds, players)}</span>
             {delta && <RatingDelta value={delta.loserDelta} />}
@@ -105,9 +105,9 @@ function GameRow({
         <p
           className={`shrink-0 whitespace-nowrap font-mono text-[16px] font-bold ${voided ? 'text-muted line-through' : ''}`}
         >
-          <span className={voided ? '' : 'text-gold'}>{winnerScore}</span>
+          <span className={voided ? '' : 'text-accent'}>{winnerScore}</span>
           <span className="text-muted">–</span>
-          <span className={voided ? '' : 'text-cream/80'}>{loserScore}</span>
+          <span className={voided ? '' : 'text-fg/80'}>{loserScore}</span>
         </p>
       </div>
       {voided && (

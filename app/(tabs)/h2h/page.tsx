@@ -38,12 +38,12 @@ export default async function HeadToHeadPage({
   return (
     <main>
       <TopBar />
-      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-cream">
+      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
         ← Ranks
       </Link>
 
       <h1 className="headline text-[46px]">
-        Head <span className="text-gold">to Head</span>
+        Head <span className="text-accent">to Head</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">Pick two names for the whole record between them</p>
 
@@ -56,13 +56,13 @@ export default async function HeadToHeadPage({
         <section className="mt-5">
           {total > 0 ? (
             <>
-              <div className="cardinal-panel rounded-2xl p-4 text-center">
-                <p className="eyebrow text-gold">
+              <div className="panel rounded-2xl p-4 text-center">
+                <p className="eyebrow text-accent">
                   {nameOf(a!)} vs {nameOf(b!)}
                 </p>
                 <p className="headline mt-1 text-[64px]">
                   {summary.wins}
-                  <span className="text-gold">–</span>
+                  <span className="text-accent">–</span>
                   {summary.losses}
                 </p>
               </div>
@@ -78,7 +78,7 @@ export default async function HeadToHeadPage({
             </>
           ) : (
             <div className="surface rounded-2xl px-4 py-5 text-center">
-              <p className="text-[15px] leading-relaxed text-cream">{note}</p>
+              <p className="text-[15px] leading-relaxed text-fg">{note}</p>
               <div className="mx-auto mt-4 max-w-[160px]">
                 <Stat value={String(summary.sameTeam)} label="On the same team" />
               </div>
@@ -109,7 +109,7 @@ function Slot({ label, name }: { label: string; name?: string }) {
     <div>
       <p className="eyebrow mb-1.5 text-[10.5px]">{label}</p>
       <div
-        className={`flex min-h-11 items-center rounded-[9px] border-[1.5px] px-3 font-display text-[16px] font-bold uppercase ${name ? 'border-gold/45 bg-gold/6 text-cream' : 'border-dashed border-gold/30 text-faint'}`}
+        className={`flex min-h-11 items-center rounded-[9px] border-[1.5px] px-3 font-display text-[16px] font-bold uppercase ${name ? 'border-accent/45 bg-accent/6 text-fg' : 'border-dashed border-accent/30 text-faint'}`}
       >
         <span className="min-w-0 truncate">{name ?? 'Tap a name'}</span>
       </div>
@@ -137,7 +137,7 @@ function PlayerPicks({
             <Link
               href={buildH2hHref(selection, slotKey, p.id)}
               aria-current={on ? 'true' : undefined}
-              className={`inline-flex min-h-11 items-center rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-gold bg-gold text-gold-ink' : 'surface'}`}
+              className={`inline-flex min-h-11 items-center rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface'}`}
             >
               {p.displayName}
             </Link>

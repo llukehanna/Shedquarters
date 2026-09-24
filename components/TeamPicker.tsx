@@ -36,13 +36,13 @@ export function TeamPicker({
       <div className="mt-4 grid grid-cols-2 gap-2">
         {teams.map((team) => (
           <div key={team.label}>
-            <p className={`eyebrow mb-1.5 text-[10.5px] ${team.holding ? 'text-gold' : ''}`}>{team.label}</p>
+            <p className={`eyebrow mb-1.5 text-[10.5px] ${team.holding ? 'text-accent' : ''}`}>{team.label}</p>
             {Array.from({ length: size }, (_, i) => {
               const id = team.ids[i]
               return (
                 <div
                   key={i}
-                  className={`mb-1.5 flex min-h-11 items-center rounded-[9px] border-[1.5px] px-3 font-display text-[18px] font-bold uppercase ${id ? 'border-gold/45 bg-gold/6 text-cream' : 'border-dashed border-gold/30 text-faint'}`}
+                  className={`mb-1.5 flex min-h-11 items-center rounded-[9px] border-[1.5px] px-3 font-display text-[18px] font-bold uppercase ${id ? 'border-accent/45 bg-accent/6 text-fg' : 'border-dashed border-accent/30 text-faint'}`}
                 >
                   {id ? name(id) : 'Tap a name'}
                 </div>
@@ -73,7 +73,7 @@ export function TeamPicker({
                 type="button"
                 onClick={() => onToggle(p.id)}
                 aria-pressed={on}
-                className={`min-h-11 rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-gold bg-gold text-gold-ink' : 'surface'}`}
+                className={`min-h-11 rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface'}`}
               >
                 {p.displayName}
               </button>

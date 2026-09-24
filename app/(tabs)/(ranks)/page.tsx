@@ -81,7 +81,7 @@ export default async function Ranks() {
       <h1 className="headline mt-2 text-[52px]">
         Power
         <br />
-        <span className="text-gold">Rankings</span>
+        <span className="text-accent">Rankings</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">
         {SPORT_RULES[sport].name} · {countLabel(played, 'game')}
@@ -90,10 +90,10 @@ export default async function Ranks() {
 
       {ratings.length === 0 ? (
         <section className="mt-12 text-center">
-          <p className="headline text-[104px] text-gold">0</p>
+          <p className="headline text-[104px] text-accent">0</p>
           <p className="eyebrow mt-2">Games played</p>
           <h2 className="headline mt-6 text-[36px]">
-            Season starts <span className="text-gold">tonight</span>
+            Season starts <span className="text-accent">tonight</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xs text-[14px] leading-relaxed text-muted">
             Log games at the table. Rankings show up after the first game and firm up once people
@@ -101,7 +101,7 @@ export default async function Ranks() {
           </p>
           <Link
             href="/table"
-            className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-cardinal-glow to-cardinal-shade font-display text-[23px] font-extrabold italic uppercase text-white shadow-[inset_0_0_0_1px_rgb(255_204_0/0.35)]"
+            className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-panel-glow to-panel-shade font-display text-[23px] font-extrabold italic uppercase text-white ring-1 ring-inset ring-accent/35"
           >
             Go to the table →
           </Link>
@@ -131,12 +131,12 @@ export default async function Ranks() {
           <h2 className="eyebrow mb-2">Longest runs</h2>
           <ul className="surface rounded-2xl px-3">
             {runs.map((r, i) => (
-              <li key={i} className="flex min-h-11 items-center border-b border-gold/8 last:border-b-0">
-                <span className="w-7 font-display text-[18px] font-extrabold text-gold">{i + 1}</span>
+              <li key={i} className="flex min-h-11 items-center border-b border-accent/8 last:border-b-0">
+                <span className="w-7 font-display text-[18px] font-extrabold text-accent">{i + 1}</span>
                 <span className="flex-1 font-display text-[17px] font-bold uppercase">
                   {r.roster.map(name).join(' · ')}
                 </span>
-                <span className="headline text-[26px] text-gold">{r.length}</span>
+                <span className="headline text-[26px] text-accent">{r.length}</span>
               </li>
             ))}
           </ul>
@@ -148,9 +148,9 @@ export default async function Ranks() {
           <h2 className="eyebrow mb-2">Most carried</h2>
           <ul className="surface rounded-2xl px-3 py-1">
             {carried.map((c, i) => (
-              <li key={i} className="border-b border-gold/8 py-2.5 text-[13.5px] leading-snug last:border-b-0">
+              <li key={i} className="border-b border-accent/8 py-2.5 text-[13.5px] leading-snug last:border-b-0">
                 <span className="font-display text-[17px] font-bold uppercase">{name(c.playerId)}</span>{' '}
-                wins <b className="text-gold">{formatPercent(c.withRate)}</b> with {name(c.teammateId)} (
+                wins <b className="text-accent">{formatPercent(c.withRate)}</b> with {name(c.teammateId)} (
                 {countLabel(c.withGames, 'game')}), {formatPercent(c.withoutRate)} without (
                 {c.withoutGames})
               </li>
@@ -166,7 +166,7 @@ export default async function Ranks() {
             {shameEntries.map((e) => (
               <li
                 key={e.key}
-                className="flex min-h-11 items-center gap-3 border-b border-gold/8 py-2 last:border-b-0"
+                className="flex min-h-11 items-center gap-3 border-b border-accent/8 py-2 last:border-b-0"
               >
                 <span className="w-[104px] shrink-0 text-[11px] font-bold uppercase leading-tight tracking-[0.08em] text-muted">
                   {e.label}
@@ -183,18 +183,18 @@ export default async function Ranks() {
 
       <Link
         href="/games"
-        className="surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-cream"
+        className="surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
       >
         Every game
-        <span aria-hidden className="text-gold">→</span>
+        <span aria-hidden className="text-accent">→</span>
       </Link>
 
       <Link
         href="/h2h"
-        className="surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-cream"
+        className="surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
       >
         Head to head
-        <span aria-hidden className="text-gold">→</span>
+        <span aria-hidden className="text-accent">→</span>
       </Link>
     </main>
   )

@@ -1,21 +1,21 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-ink: #0b0304;
-  --color-ink-glow: #170507;
-  --color-ink-deep: #070203;
-  --color-cardinal: #990000;
-  --color-cardinal-hi: #b30000;
-  --color-cardinal-deep: #6e0000;
-  --color-gold: #ffcc00;
-  --color-gold-ink: #3a0000;
-  --color-cream: #f7eedc;
+  --color-ground: #0b0304;
+  --color-ground-glow: #170507;
+  --color-ground-deep: #070203;
+  --color-panel: #990000;
+  --color-panel-hi: #b30000;
+  --color-panel-deep: #6e0000;
+  --color-accent: #ffcc00;
+  --color-accent-ink: #3a0000;
+  --color-fg: #f7eedc;
   --color-muted: #9e8570;
   --color-faint: #5e4a3c;
   --color-up: #4ade80;
   --color-down: #ff6b6b;
-  --color-cardinal-glow: #c40000;
-  --color-cardinal-shade: #8a0000;
+  --color-panel-glow: #c40000;
+  --color-panel-shade: #8a0000;
   --color-sheet-top: #1f0709;
   --color-sheet-bottom: #0d0304;
 }
@@ -30,7 +30,7 @@
 @layer base {
   html {
     color-scheme: dark;
-    background: var(--color-ink);
+    background: var(--color-ground);
     /* Scrolling to a new page's top must stop below the status bar, not under it. */
     scroll-padding-top: env(safe-area-inset-top);
   }
@@ -41,12 +41,12 @@
     padding-top: env(safe-area-inset-top);
     background: radial-gradient(
       120% 60% at 50% 0%,
-      var(--color-ink-glow) 0%,
-      var(--color-ink) 45%,
-      var(--color-ink-deep) 100%
+      var(--color-ground-glow) 0%,
+      var(--color-ground) 45%,
+      var(--color-ground-deep) 100%
     );
     background-attachment: fixed;
-    color: var(--color-cream);
+    color: var(--color-fg);
     font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -76,14 +76,14 @@
   color: var(--color-muted);
 }
 
-/* The standard dark card: faint cream fill, faint gold hairline. */
+/* The standard dark card: a faint wash of the foreground, a faint accent hairline. */
 @utility surface {
-  background: rgb(247 238 220 / 0.045);
-  border: 1px solid rgb(255 204 0 / 0.12);
+  background: color-mix(in srgb, var(--color-fg) 4.5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
-/* The cardinal card used for the holding team and #1. */
-@utility cardinal-panel {
-  background: linear-gradient(150deg, var(--color-cardinal-hi), var(--color-cardinal-deep));
-  border: 1.5px solid rgb(255 204 0 / 0.55);
+/* The team card: the holding team, #1, a player's hero. */
+@utility panel {
+  background: linear-gradient(150deg, var(--color-panel-hi), var(--color-panel-deep));
+  border: 1.5px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
 }
