@@ -43,11 +43,11 @@ Component tests do exist (`tests/*.test.tsx`, jsdom via a `// @vitest-environmen
 
 | Route | Access | What it is |
 |---|---|---|
-| `/` | public | Power rankings: rating, record, streak, 7-day movement, "Shed of shame". Every public page takes `?sport=spikeball`; beer die is the default |
-| `/players/[id]` | public | Record, win %, point differential, badges, head-to-head list |
+| `/` | public | Power rankings for the phone's sport: rating, record, streak, 7-day movement, "Shed of shame" |
+| `/players/[id]` | public | Both sports at once: a card per sport (rank, rating, record, win %, streak, point differential, badges) and head-to-head with a record per sport |
 | `/games` | public | Every game, newest first, grouped by night, with each side's rating change |
 | `/h2h?a=&b=` | public | Two players' record against each other and as teammates |
-| `/table` | signed in | Table mode: start a night, log games, undo, change teams, end the night |
+| `/table` | signed in | Table mode for the phone's sport: start a night, log games, undo, change teams, end the night |
 | `/roster` | signed in | The "Me" tab: add players, rename, add nicknames |
 | `/gate` | public | The PIN keypad |
 | `/join/[token]` | public | The invite link: signs the phone in without the PIN |
@@ -56,6 +56,16 @@ Component tests do exist (`tests/*.test.tsx`, jsdom via a `// @vitest-environmen
 | `GET /api/cron/backup` | `CRON_SECRET` | Nightly dump to Vercel Blob |
 
 A signed-out request to a signed-in page redirects to `/gate`, never to an error page.
+
+## Two sports
+
+Beer die and spikeball are two themed experiences over one roster.
+
+- **Which sport a phone is on** lives in the `shed-sport` cookie, not the URL. `proxy.ts` turns any `?sport=` link into the cookie and redirects to the same page without it, so a shared link still lands on the right ladder, and the cookie is the only source of truth. Server components read it with `currentSport()` (`lib/sport-cookie.ts`).
+- **The Die │ Spike pill** (`components/ui/SportPill.tsx`) sits in the top bar of every tab. Its halves are plain `<a>` links with `?sport=`, never `next/link`: a client-side navigation would not re-render the root layout, which is what paints the theme. The other sport's half shows a green dot while its night is live.
+- **Themes.** The root layout puts `data-sport` on `<html>`. `app/globals.css` gives each sport its colours as plain variables on that scope (Old Glory for die, Ball Yellow & Black for spikeball), and the inline theme points Tailwind's tokens (`ground`, `panel`, `panel-ink`, `accent`, `fg`, …) at them. Tokens are named by job, not colour. Text on a `panel` uses `panel-ink`, which is white on die's red and black on spikeball's yellow. Any element can re-scope with its own `data-sport`: the player page is `both` (neutral) and each sport's card inside it takes that sport's colours.
+- **One live night per sport.** `getActiveTable(sport)` and `getLiveSports()`, with a partial unique index (`sessions_one_open_per_sport`) that allows one open night per sport. A die night and a spikeball night can run at the same time.
+- **Swiping** left or right on a tab moves between Ranks, Table and Me (`components/SwipeTabs.tsx`, rules in `lib/ui/swipe.ts`). It only counts a clearly sideways, quick drag that starts away from the screen edges, and never while a sheet is open.
 
 ## The table as a state machine
 
@@ -82,7 +92,7 @@ startSession(holders, challengers)
 So the game rows are enough to reconstruct the table at any point, and an undo can restore it exactly from the voided row.
 
 The current run ("3 game run") isn't stored.
-`getActiveTable()` walks the night's games from newest to oldest while the winning roster matches the current holders.
+`getActiveTable(sport)` walks the night's games from newest to oldest while the winning roster matches the current holders.
 It compares the winning roster, not `team_a`: a challenger who just took the table was `team_b` in that game.
 
 ## Reads

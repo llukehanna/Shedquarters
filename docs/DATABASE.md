@@ -8,7 +8,7 @@ Every statement is idempotent (`create … if not exists`, `add column if not ex
 | Table | Holds | Notes |
 |---|---|---|
 | `players` | Name, housemate or guest, nicknames | `display_name` is unique; nicknames aren't, on purpose (two people can both be "Big Cat") |
-| `sessions` | One night of play | `game_type` is the night's sport; `target_score` is what the next game defaults to; `holders` / `challengers` are the live table state; `ended_at` closes the night |
+| `sessions` | One night of play | `game_type` is the night's sport; `target_score` is what the next game defaults to; `holders` / `challengers` are the live table state; `ended_at` closes the night. At most one open night per sport (`sessions_one_open_per_sport`, a partial unique index on `game_type where ended_at is null`), so a die night and a spikeball night can run side by side |
 | `games` | Every game ever played | **Append-only** apart from `voided`. The source of truth for everything derived |
 | `ratings_cache_by_sport` | One row per sport: the latest replay | Keyed by a fingerprint of that sport's `games`; see [RATINGS.md](RATINGS.md) |
 | `ratings_cache` | Unused | The single-row cache from before spikeball, kept so an old deploy still works mid-rollout. Safe to drop |
