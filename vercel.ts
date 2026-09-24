@@ -10,5 +10,10 @@ export const config: VercelConfig = {
   // builds skip it: DATABASE_URL is production-only, and a preview must never
   // alter the production schema anyway.
   buildCommand: 'if [ "$VERCEL_ENV" = "production" ]; then npm run migrate; fi && next build',
+  // Only production builds from Git. A preview has no DATABASE_URL (it's
+  // production-only), so it fails collecting page data and puts a red check
+  // on every PR, while CI already builds, typechecks, lints and tests each
+  // one. Exit 0 skips the build, 1 runs it.
+  ignoreCommand: '[ "$VERCEL_ENV" != "production" ]',
   crons: [{ path: '/api/cron/backup', schedule: '0 9 * * *' }],
 }

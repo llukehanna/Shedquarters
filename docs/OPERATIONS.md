@@ -108,6 +108,12 @@ Then verify:
 - The blob from that URL has every player, session and game, and no `ratings_cache`.
 - `vercel crons ls` lists the backup at `0 9 * * *` (9am UTC, 1–2am in Los Angeles, after a night has ended).
 
+### Every deploy after that
+
+The Vercel project is connected to the GitHub repo, so **merging to `main` deploys to production**. There's nothing to run by hand.
+Pull request branches don't get preview deployments: `ignoreCommand` in `vercel.ts` skips every build that isn't production. A preview has no `DATABASE_URL` and would fail anyway, and CI already builds, typechecks, lints and tests every PR.
+To deploy without merging (a hotfix, or a redeploy), `vercel --prod` from an up-to-date `main` still works.
+
 ### Schema migrations
 
 Production builds run `npm run migrate` before `next build` (the `buildCommand` in `vercel.ts`), using the production `DATABASE_URL`, which Vercel provides at build time.
