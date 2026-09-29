@@ -19,28 +19,36 @@ export default async function TablePage() {
   // is going, is one tap away on the top-bar pill.
   const sport = await currentSport()
   const [table, players] = await Promise.all([getActiveTable(sport), getPlayers()])
-  if (!table) return <SessionSetup key={sport} sport={sport} players={players} />
+  if (!table)
+    return (
+      <div className="lg:mx-auto lg:max-w-md">
+        <SessionSetup key={sport} sport={sport} players={players} />
+      </div>
+    )
 
   return (
-    <TableMode
-      // Keyed on the session id so a session change — e.g. an undo pulls a
-      // newly-started session into what was already a mounted TableMode —
-      // remounts the component from scratch instead of reusing it with new
-      // props. Without this, every piece of local UI state (phase, picked,
-      // the teams-editor sentinels) would carry over from the old session,
-      // and the phase-save effect would write the previous session's phase
-      // under the new session's storage key.
-      key={table.sessionId}
-      sessionId={table.sessionId}
-      serverTable={{
-        holders: table.holders,
-        challengers: table.challengers,
-        runLength: table.runLength,
-        seq: table.seq,
-      }}
-      sport={table.gameType}
-      serverTarget={table.targetScore}
-      players={players}
-    />
+    // Phone width on desktop too; laying the table out wide is piece 2.
+    <div className="lg:mx-auto lg:max-w-md">
+      <TableMode
+        // Keyed on the session id so a session change — e.g. an undo pulls a
+        // newly-started session into what was already a mounted TableMode —
+        // remounts the component from scratch instead of reusing it with new
+        // props. Without this, every piece of local UI state (phase, picked,
+        // the teams-editor sentinels) would carry over from the old session,
+        // and the phase-save effect would write the previous session's phase
+        // under the new session's storage key.
+        key={table.sessionId}
+        sessionId={table.sessionId}
+        serverTable={{
+          holders: table.holders,
+          challengers: table.challengers,
+          runLength: table.runLength,
+          seq: table.seq,
+        }}
+        sport={table.gameType}
+        serverTarget={table.targetScore}
+        players={players}
+      />
+    </div>
   )
 }

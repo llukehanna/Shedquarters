@@ -144,7 +144,7 @@ export function RosterList({ players }: { players: Player[] }) {
               type="button"
               onClick={() => openEditor(p)}
               aria-label={`Edit ${p.displayName}`}
-              className="ml-3 flex min-h-11 min-w-11 items-center justify-center text-[13px] font-bold uppercase tracking-[0.08em] text-muted"
+              className="ml-3 flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[13px] font-bold uppercase tracking-[0.08em] text-muted transition-colors duration-150 ease-(--ease) active:bg-fg/8 active:text-fg lg:hover:text-fg"
             >
               Edit
             </button>
