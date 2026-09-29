@@ -1,4 +1,5 @@
 import { TabBar } from '@/components/ui/TabBar'
+import { Sidebar } from '@/components/ui/Sidebar'
 import { SportProvider } from '@/components/SportContext'
 import { SwipeTabs } from '@/components/SwipeTabs'
 import { currentSport } from '@/lib/sport-cookie'
@@ -11,9 +12,14 @@ export default async function TabsLayout({ children }: LayoutProps<'/'>) {
   const [sport, liveSports] = await Promise.all([currentSport(), getLiveSports()])
   return (
     <SportProvider sport={sport} liveSports={liveSports}>
-      {/* Phone-width column; the bottom padding keeps content clear of the floating tab bar.
-          Swiping sideways on it moves between the tabs. */}
-      <SwipeTabs className="mx-auto w-full max-w-md px-4 pt-2 pb-[calc(5.75rem+env(safe-area-inset-bottom))]">
+      {/* Desktop only: the glow the rail's glass blurs. */}
+      <div aria-hidden="true" className="ambient hidden lg:block" />
+      <Sidebar />
+      {/* A phone-width column with room at the bottom for the floating tab bar.
+          From lg up the rail floats on the left and the content fills the
+          width beside it, left-aligned and capped for ultrawide screens.
+          Swiping sideways moves between tabs on a phone. */}
+      <SwipeTabs className="mx-auto w-full max-w-md px-4 pt-2 pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:mx-0 lg:ml-[328px] lg:w-auto lg:max-w-[1200px] lg:pt-8 lg:pr-12 lg:pb-16 lg:pl-0">
         {children}
       </SwipeTabs>
       <TabBar />
