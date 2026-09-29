@@ -58,6 +58,12 @@ More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/OFFLINE.md](docs/OFF
 Rankings with weekly movement and a "Shed of shame" · player pages with badges and head-to-head records · a game log with each game's rating change · table mode for the scorekeeper.
 It installs to the home screen as a web app and has its own offline screen.
 
+<p align="center">
+  <img src="docs/media/desktop.png" width="100%" alt="Power rankings on a laptop: a floating glass rail on the left, standings, and a sticky column of longest runs, most carried and the Shed of shame">
+</p>
+
+On a laptop the tab bar becomes a floating glass rail and the screens spread into columns.
+
 ## Stack
 
 - **Next.js 16** (App Router, server components, server actions) + **React 19** + **TypeScript**

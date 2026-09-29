@@ -22,14 +22,15 @@ export default async function TablePage() {
   const [table, players] = await Promise.all([getActiveTable(sport), getPlayers()])
   if (!table)
     return (
-      <>
+      <div className="lg:mx-auto lg:max-w-md">
         <StaleCheck />
         <SessionSetup key={sport} sport={sport} players={players} />
-      </>
+      </div>
     )
 
   return (
-    <>
+    // Phone width on desktop too; laying the table out wide is piece 2.
+    <div className="lg:mx-auto lg:max-w-md">
       <StaleCheck />
       <TableMode
         // Keyed on the session id so a session change — e.g. an undo pulls a
@@ -51,6 +52,6 @@ export default async function TablePage() {
         serverTarget={table.targetScore}
         players={players}
       />
-    </>
+    </div>
   )
 }

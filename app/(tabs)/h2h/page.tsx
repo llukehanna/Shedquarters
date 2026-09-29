@@ -40,68 +40,78 @@ export default async function HeadToHeadPage({
     <main>
       <StaleCheck />
       <TopBar />
-      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
+      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg lg:hidden">
         ← Ranks
       </Link>
 
-      <h1 className="headline text-[46px]">
+      <h1 className="headline text-[46px] lg:text-[60px]">
         Head <span className="text-accent">to Head</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">Pick two names for the whole record between them</p>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Slot label="Player one" name={a ? nameOf(a) : undefined} />
-        <Slot label="Player two" name={b ? nameOf(b) : undefined} />
-      </div>
+      <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
+        <div className="grid grid-cols-2 gap-2 lg:col-start-1 lg:row-start-1">
+          <Slot label="Player one" name={a ? nameOf(a) : undefined} />
+          <Slot label="Player two" name={b ? nameOf(b) : undefined} />
+        </div>
 
-      {summary && (
-        <section className="mt-5">
-          {total > 0 ? (
-            <>
-              <div className="panel rounded-2xl p-4 text-center">
-                <p className="eyebrow text-panel-sub">
-                  {nameOf(a!)} vs {nameOf(b!)}
-                </p>
-                <p className="headline mt-1 text-[64px]">
-                  {summary.wins}
-                  <span className="text-panel-sub">–</span>
-                  {summary.losses}
-                </p>
-              </div>
+        <div className="lg:sticky lg:top-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+          {summary ? (
+            <section className="mt-5 lg:mt-0">
+              {total > 0 ? (
+                <>
+                  <div className="panel rounded-2xl p-4 text-center">
+                    <p className="eyebrow text-panel-sub">
+                      {nameOf(a!)} vs {nameOf(b!)}
+                    </p>
+                    <p className="headline mt-1 text-[64px]">
+                      {summary.wins}
+                      <span className="text-panel-sub">–</span>
+                      {summary.losses}
+                    </p>
+                  </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Stat value={String(total)} label="Against each other" />
-                <Stat value={String(summary.sameTeam)} label="On the same team" />
-              </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Stat value={String(total)} label="Against each other" />
+                    <Stat value={String(summary.sameTeam)} label="On the same team" />
+                  </div>
 
-              {note && (
-                <p className="surface mt-3 rounded-2xl px-3 py-3 text-[14px] leading-relaxed text-muted">{note}</p>
+                  {note && (
+                    <p className="surface mt-3 rounded-2xl px-3 py-3 text-[14px] leading-relaxed text-muted">{note}</p>
+                  )}
+                </>
+              ) : (
+                <div className="surface rounded-2xl px-4 py-5 text-center">
+                  <p className="text-[15px] leading-relaxed text-fg">{note}</p>
+                  <div className="mx-auto mt-4 max-w-[160px]">
+                    <Stat value={String(summary.sameTeam)} label="On the same team" />
+                  </div>
+                </div>
               )}
-            </>
+            </section>
           ) : (
-            <div className="surface rounded-2xl px-4 py-5 text-center">
-              <p className="text-[15px] leading-relaxed text-fg">{note}</p>
-              <div className="mx-auto mt-4 max-w-[160px]">
-                <Stat value={String(summary.sameTeam)} label="On the same team" />
-              </div>
-            </div>
+            <p className="hidden rounded-2xl border border-dashed border-accent/25 px-4 py-10 text-center text-[14px] text-muted lg:block">
+              Pick two names to see the record between them.
+            </p>
           )}
-        </section>
-      )}
+        </div>
 
-      {players.length === 0 ? (
-        <p className="surface mt-6 rounded-2xl px-3 py-4 text-[13px] text-muted">
-          No players on the roster yet.
-        </p>
-      ) : (
-        <>
-          <p className="eyebrow mt-6 mb-2">Player one</p>
-          <PlayerPicks players={players.filter((p) => p.id !== b)} selectedId={a} slotKey="a" selection={selection} />
+        <div className="lg:col-start-1 lg:row-start-2">
+          {players.length === 0 ? (
+            <p className="surface mt-6 rounded-2xl px-3 py-4 text-[13px] text-muted">
+              No players on the roster yet.
+            </p>
+          ) : (
+            <>
+              <p className="eyebrow mt-6 mb-2">Player one</p>
+              <PlayerPicks players={players.filter((p) => p.id !== b)} selectedId={a} slotKey="a" selection={selection} />
 
-          <p className="eyebrow mt-5 mb-2">Player two</p>
-          <PlayerPicks players={players.filter((p) => p.id !== a)} selectedId={b} slotKey="b" selection={selection} />
-        </>
-      )}
+              <p className="eyebrow mt-5 mb-2">Player two</p>
+              <PlayerPicks players={players.filter((p) => p.id !== a)} selectedId={b} slotKey="b" selection={selection} />
+            </>
+          )}
+        </div>
+      </div>
     </main>
   )
 }
@@ -139,7 +149,7 @@ function PlayerPicks({
             <Link
               href={buildH2hHref(selection, slotKey, p.id)}
               aria-current={on ? 'true' : undefined}
-              className={`inline-flex min-h-11 items-center rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface'}`}
+              className={`inline-flex min-h-11 items-center rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface transition-[translate,background] duration-250 ease-(--ease) active:glass active:duration-150 lg:hover:-translate-y-0.5'}`}
             >
               {p.displayName}
             </Link>
