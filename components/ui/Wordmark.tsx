@@ -21,8 +21,10 @@ import { ShieldsReveal } from './ShieldsReveal'
  * these taps never had anywhere else to go. The reveal renders `fixed`, as a
  * sibling of the mark rather than a wrapper around it, so no screen the
  * wordmark sits on moves by a pixel whether it is open or not.
+ *
+ * @param size stacked only, in px; the desktop rail uses 52 so QUARTERS fits
  */
-export function Wordmark({ variant }: { variant: 'bar' | 'inline' | 'stacked' }) {
+export function Wordmark({ variant, size }: { variant: 'bar' | 'inline' | 'stacked'; size?: number }) {
   const [egg, setEgg] = useState<EggState>(EGG_CLOSED)
 
   const onTap = useCallback(() => setEgg((s) => tapWordmark(s, Date.now())), [])
@@ -44,7 +46,11 @@ export function Wordmark({ variant }: { variant: 'bar' | 'inline' | 'stacked' })
   if (variant === 'stacked') {
     return (
       <>
-        <span onClick={onTap} className="headline block text-[64px] text-fg">
+        <span
+          onClick={onTap}
+          className={`headline block text-fg ${size === undefined ? 'text-[64px]' : ''}`}
+          style={size === undefined ? undefined : { fontSize: size }}
+        >
           Shed
           <br />
           <span className="text-accent">quarters</span>
