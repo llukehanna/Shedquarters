@@ -22,7 +22,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Main"
-      className="glass isolate fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 mx-auto max-w-[26.5rem] rounded-2xl lg:hidden"
+      className="glass isolate fixed right-(--tabbar-x) bottom-(--tabbar-bottom) left-(--tabbar-x) z-30 mx-auto max-w-[26.5rem] rounded-full lg:hidden"
     >
       {/* Ground tint under the glass so labels stay legible over bright content. */}
       <span aria-hidden="true" className="absolute inset-0 -z-10 rounded-[inherit] bg-ground-deep/75" />
@@ -37,13 +37,13 @@ export function TabBar() {
                 // soon as the bar is on screen, so a tab switch never waits.
                 prefetch={true}
                 aria-current={on ? 'page' : undefined}
-                className={`relative flex h-full items-center justify-center rounded-[10px] font-display text-[12.5px] font-bold uppercase tracking-[0.12em] transition-colors duration-150 ease-(--ease) ${on ? 'text-accent' : 'text-faint active:text-fg'}`}
+                className={`relative flex h-full items-center justify-center rounded-full font-display text-[12.5px] font-bold uppercase tracking-[0.12em] transition-colors duration-150 ease-(--ease) ${on ? 'text-accent' : 'text-faint active:text-fg'}`}
               >
                 {on && (
                   <motion.span
                     layoutId="tab-indicator"
                     aria-hidden="true"
-                    className="absolute inset-0 rounded-[10px] bg-fg/[6.5%] shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_8%,transparent)]"
+                    className="absolute inset-0 rounded-full bg-fg/[6.5%] shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_8%,transparent)]"
                   />
                 )}
                 <span className="relative flex items-center gap-1.5">

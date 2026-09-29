@@ -730,7 +730,7 @@ export function TableMode({
           onAnnounce={setTeamsNotice}
         />
 
-        <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-6 mt-6 flex gap-2">
+        <div className="sticky bottom-[calc(var(--tabbar-top)+0.5rem)] lg:bottom-6 mt-6 flex gap-2">
           <Button
             tone="ghost"
             size="lg"
@@ -801,7 +801,7 @@ export function TableMode({
         })}
       </ul>
 
-      <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-6 mt-6">
+      <div className="sticky bottom-[calc(var(--tabbar-top)+0.5rem)] lg:bottom-6 mt-6">
         <Button disabled={picked.length !== requiredChallengers} onClick={() => log(phase.winner, phase.loserScore)}>
           {picked.length === requiredChallengers ? 'Log it →' : `Pick ${requiredChallengers - picked.length} more`}
         </Button>
