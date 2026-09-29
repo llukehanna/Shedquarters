@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { stubMatchMedia, unstubMatchMedia } from './helpers/match-media'
+import { DESKTOP_QUERY } from '@/lib/ui/media'
 
 const nav = vi.hoisted(() => ({ pathname: '/', push: vi.fn(), prefetch: vi.fn() }))
 vi.mock('next/navigation', () => ({
@@ -21,6 +23,7 @@ beforeEach(() => {
 })
 afterEach(() => {
   cleanup()
+  unstubMatchMedia()
   vi.restoreAllMocks()
 })
 
@@ -84,5 +87,19 @@ describe('SwipeTabs', () => {
     renderTabs()
     expect(nav.prefetch).toHaveBeenCalledWith('/')
     expect(nav.prefetch).toHaveBeenCalledWith('/roster')
+  })
+
+  it('stands down at desktop width, where the rail does the navigating', () => {
+    stubMatchMedia([DESKTOP_QUERY])
+    renderTabs()
+    swipe(screen.getByText('Rankings'), [220, 300], [80, 305])
+    expect(nav.push).not.toHaveBeenCalled()
+  })
+
+  it('still swipes when the desktop query does not match', () => {
+    stubMatchMedia([])
+    renderTabs()
+    swipe(screen.getByText('Rankings'), [220, 300], [80, 305])
+    expect(nav.push).toHaveBeenCalledWith('/table')
   })
 })
