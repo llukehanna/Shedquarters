@@ -12,6 +12,7 @@ import { InstallHint } from '@/components/InstallHint'
 import { SPORT_RULES } from '@/lib/domain/sport'
 import { currentSport } from '@/lib/sport-cookie'
 import { formatRating, formatRecord, formatPercent, formatDiff, countLabel } from '@/lib/ui/format'
+import { StaleCheck } from '@/components/StaleCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,6 +76,7 @@ export default async function Ranks() {
 
   return (
     <main>
+      <StaleCheck />
       <TopBar live={table !== null} />
       <InstallHint />
 

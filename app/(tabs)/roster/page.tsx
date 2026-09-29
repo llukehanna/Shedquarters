@@ -6,6 +6,7 @@ import { requirePasscode, currentPlayerId } from '@/lib/auth'
 import { TopBar } from '@/components/ui/TopBar'
 import { RosterList } from '@/components/RosterList'
 import { countLabel } from '@/lib/ui/format'
+import { StaleCheck } from '@/components/StaleCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,6 +33,7 @@ export default async function Roster({
 
   return (
     <main>
+      <StaleCheck />
       <TopBar />
       <h1 className="headline mt-2 text-[46px]">
         The <span className="text-accent">Shed</span>

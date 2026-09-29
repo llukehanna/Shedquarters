@@ -5,6 +5,7 @@ import { headToHeadSummary, headToHeadNote } from '@/lib/domain/stats'
 import { buildH2hHref, firstParam, type H2hSelection } from '@/lib/ui/h2h'
 import { TopBar } from '@/components/ui/TopBar'
 import { currentSport } from '@/lib/sport-cookie'
+import { StaleCheck } from '@/components/StaleCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +38,7 @@ export default async function HeadToHeadPage({
 
   return (
     <main>
+      <StaleCheck />
       <TopBar />
       <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
         ← Ranks
