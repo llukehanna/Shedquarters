@@ -95,7 +95,7 @@ export default async function Ranks() {
         {SPORT_RULES[sport].name} · {countLabel(played, 'game')}
       </p>
 
-      <div className="lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10">
+      <div className="lg:mt-4 xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-10">
         <div>
           {ratings.length === 0 ? (
             <section className="mt-12 text-center lg:mx-auto lg:max-w-md">
@@ -138,9 +138,9 @@ export default async function Ranks() {
             </section>
           )}
         </div>
-        <aside className="lg:sticky lg:top-8">
+        <aside className="xl:sticky xl:top-8">
           {runs.length > 0 && (
-            <section className="mt-8 lg:mt-0">
+            <section className="mt-8 xl:mt-0">
               <SectionRule label="Longest runs" index={asideIndex('runs')} className="mb-2" />
               <ul className="surface rounded-2xl px-3">
                 {runs.map((r, i) => (
@@ -157,7 +157,7 @@ export default async function Ranks() {
           )}
 
           {carried.length > 0 && (
-            <section className="mt-6 lg:first:mt-0">
+            <section className="mt-6 xl:first:mt-0">
               <SectionRule label="Most carried" index={asideIndex('carried')} className="mb-2" />
               <ul className="surface rounded-2xl px-3 py-1">
                 {carried.map((c, i) => (
@@ -173,7 +173,7 @@ export default async function Ranks() {
           )}
 
           {shameEntries.length > 0 && (
-            <section className="mt-6 lg:first:mt-0">
+            <section className="mt-6 xl:first:mt-0">
               <SectionRule label="Shed of shame" index={asideIndex('shame')} className="mb-2" />
               <ul className="surface rounded-2xl px-3">
                 {shameEntries.map((e) => (
