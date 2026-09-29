@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Sport } from '@/lib/domain/sport'
 
 const nav = vi.hoisted(() => ({ pathname: '/', search: '' }))
@@ -71,5 +71,17 @@ describe('Sidebar', () => {
     nav.pathname = '/gate'
     const { container } = renderRail('beer_die', [])
     expect(container.innerHTML).toBe('')
+  })
+
+  it('portals the shields reveal to document.body', () => {
+    renderRail('beer_die', [])
+    const wordmark = screen.getByText(/^Shed/)
+    // Seven rapid taps to trigger the reveal (within the 1200ms window)
+    for (let i = 0; i < 7; i++) {
+      fireEvent.click(wordmark)
+    }
+    // The dialog's aria-labelledby points to the heading containing "YOU SUCK SHIELDS"
+    const reveal = screen.getByRole('dialog')
+    expect(reveal.parentElement).toBe(document.body)
   })
 })
