@@ -52,7 +52,9 @@ export function Sidebar() {
                 >
                   {link.label}
                   {link.key === 'table' && live && <LiveDot label={`${SPORT_RULES[sport].name} night live`} />}
-                  <span className="ml-auto font-mono text-[11px] text-faint">{link.index}</span>
+                  <span aria-hidden="true" className="ml-auto font-mono text-[11px] text-faint">
+                    {link.index}
+                  </span>
                 </Link>
               </li>
             )
@@ -61,7 +63,9 @@ export function Sidebar() {
 
         <div className="mt-auto flex justify-between border-t border-fg/9 pt-3.5 font-mono text-[11px] tracking-[0.04em] text-faint">
           <span>{SPORT_RULES[sport].name}</span>
-          {live ? <span className="text-up">● Live</span> : <span>No night on</span>}
+          {live ? <span className="text-up">
+              <span aria-hidden="true">●</span> Live
+            </span> : <span>No night on</span>}
         </div>
       </nav>
     </RailSpecular>

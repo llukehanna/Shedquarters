@@ -58,7 +58,7 @@ describe('Sidebar', () => {
   it('shows the night as live on Table and in the footer', () => {
     renderRail('spikeball', ['spikeball'])
     expect(screen.getByRole('img', { name: 'Spikeball night live' })).toBeTruthy()
-    expect(screen.getByText('● Live')).toBeTruthy()
+    expect(screen.getByText('Live')).toBeTruthy()
   })
 
   it('says no night is on otherwise', () => {

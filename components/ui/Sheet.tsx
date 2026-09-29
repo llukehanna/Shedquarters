@@ -104,7 +104,7 @@ export function Sheet({
             aria-modal="true"
             aria-label={label}
             tabIndex={-1}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[22px] bg-gradient-to-b from-sheet-top to-sheet-bottom px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_14%,transparent)] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:rounded-[22px] lg:border lg:border-fg/10 lg:pt-5 lg:pb-5 lg:shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_14%,transparent),0_30px_80px_rgb(0_0_0/0.45)]"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[22px] bg-gradient-to-b from-sheet-top to-sheet-bottom px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_14%,transparent)] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:rounded-[22px] lg:border lg:border-fg/10 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:pt-5 lg:pb-5 lg:shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_14%,transparent),0_30px_80px_rgb(0_0_0/0.45)]"
             initial={desktop ? { opacity: 0, scale: 0.96 } : { y: '100%' }}
             animate={desktop ? { opacity: 1, scale: 1 } : { y: 0 }}
             exit={desktop ? { opacity: 0, scale: 0.96 } : { y: '100%' }}
