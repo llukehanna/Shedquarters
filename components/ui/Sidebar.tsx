@@ -43,6 +43,10 @@ export function Sidebar() {
               <li key={link.key}>
                 <Link
                   href={link.href}
+                  // The whole page, as the tab bar does, so a switch never waits.
+                  // The hidden tab bar can't do it here: a link that isn't on
+                  // screen is never prefetched.
+                  prefetch={true}
                   aria-current={on ? 'page' : undefined}
                   className={`-mx-3 flex items-center gap-2.5 rounded-[10px] px-3 py-[9px] text-[14px] font-medium transition-colors duration-250 ease-(--ease) ${
                     on
