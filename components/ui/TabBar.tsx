@@ -22,8 +22,10 @@ export function TabBar() {
   return (
     <nav
       aria-label="Main"
-      className="glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 mx-auto max-w-[26.5rem] rounded-2xl lg:hidden"
+      className="glass isolate fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 mx-auto max-w-[26.5rem] rounded-2xl lg:hidden"
     >
+      {/* Ground tint under the glass so labels stay legible over bright content. */}
+      <span aria-hidden="true" className="absolute inset-0 -z-10 rounded-[inherit] bg-ground-deep/75" />
       <ul className="flex h-16 p-1.5">
         {TABS.map((tab) => {
           const on = tab.key === active
