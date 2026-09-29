@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { SHIELDS_MESSAGE } from '@/lib/domain/easter-egg'
@@ -38,10 +38,7 @@ import { FOCUSABLE_SELECTOR, nextTrapFocus } from '@/lib/ui/focus'
  * joke than one that arrives plainly.
  */
 export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const reduced = useReducedMotion()
   const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocusedRef = useRef<HTMLElement | null>(null)

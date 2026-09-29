@@ -80,7 +80,6 @@ describe('Sidebar', () => {
     for (let i = 0; i < 7; i++) {
       fireEvent.click(wordmark)
     }
-    // The dialog's aria-labelledby points to the heading containing "YOU SUCK SHIELDS"
     const reveal = screen.getByRole('dialog')
     expect(reveal.parentElement).toBe(document.body)
   })
