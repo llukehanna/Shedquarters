@@ -1,5 +1,5 @@
 import { PageSkeleton } from '@/components/ui/PageSkeleton'
 
 export default function Loading() {
-  return <PageSkeleton rows={4} layout="split" />
+  return <PageSkeleton rows={4} />
 }

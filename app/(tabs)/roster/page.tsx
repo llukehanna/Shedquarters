@@ -49,33 +49,33 @@ export default async function Roster({
 
       <div className="lg:mt-2 xl:grid xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start xl:gap-10">
         <div className="xl:sticky xl:top-8">
-        {duplicate && (
-          <p role="alert" className="mt-4 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
-            &ldquo;{duplicate}&rdquo; is already on the roster — not added again.
-          </p>
-        )}
+          {duplicate && (
+            <p role="alert" className="mt-4 rounded-xl border border-down/45 bg-down/15 px-3 py-2 text-[13px]">
+              &ldquo;{duplicate}&rdquo; is already on the roster — not added again.
+            </p>
+          )}
 
-        <form action={submit} className="surface mt-4 grid gap-3 rounded-2xl p-3">
-          <label htmlFor="name" className="eyebrow text-accent">Add a player</label>
-          <input
-            id="name"
-            name="name"
-            required
-            autoComplete="off"
-            placeholder="Name"
-            className="min-h-12 rounded-[10px] border border-accent/15 bg-black/30 px-3 text-[17px] text-fg placeholder:text-faint focus:border-accent focus:outline-none"
-          />
-          <label className="flex min-h-11 items-center gap-3 text-[15px]">
-            <input type="checkbox" name="housemate" defaultChecked className="h-5 w-5 accent-accent" />
-            Housemate <span className="text-muted">(uncheck for a guest)</span>
-          </label>
-          <button
-            type="submit"
-            className="flex min-h-12 items-center justify-center rounded-xl bg-accent font-display text-[20px] font-extrabold italic uppercase text-accent-ink"
-          >
-            Add player
-          </button>
-        </form>
+          <form action={submit} className="surface mt-4 grid gap-3 rounded-2xl p-3">
+            <label htmlFor="name" className="eyebrow text-accent">Add a player</label>
+            <input
+              id="name"
+              name="name"
+              required
+              autoComplete="off"
+              placeholder="Name"
+              className="min-h-12 rounded-[10px] border border-accent/15 bg-black/30 px-3 text-[17px] text-fg placeholder:text-faint focus:border-accent focus:outline-none"
+            />
+            <label className="flex min-h-11 items-center gap-3 text-[15px]">
+              <input type="checkbox" name="housemate" defaultChecked className="h-5 w-5 accent-accent" />
+              Housemate <span className="text-muted">(uncheck for a guest)</span>
+            </label>
+            <button
+              type="submit"
+              className="flex min-h-12 items-center justify-center rounded-xl bg-accent font-display text-[20px] font-extrabold italic uppercase text-accent-ink"
+            >
+              Add player
+            </button>
+          </form>
         </div>
         <RosterList players={players} />
       </div>

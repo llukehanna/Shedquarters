@@ -70,8 +70,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
       <section className="mt-6 pb-4">
         <SectionRule label="Head to head" className="mb-1">
-          <span className="eyebrow w-[54px] text-center text-[10.5px]">Die</span>
-          <span className="eyebrow w-[54px] text-center text-[10.5px]">Spike</span>
+          <span className="flex gap-2">
+            <span className="eyebrow w-[54px] text-center text-[10.5px]">Die</span>
+            <span className="eyebrow w-[54px] text-center text-[10.5px]">Spike</span>
+          </span>
         </SectionRule>
         {rivals.length === 0 ? (
           <p className="surface rounded-2xl px-3 py-4 text-[13px] text-muted">No head-to-head games logged yet.</p>

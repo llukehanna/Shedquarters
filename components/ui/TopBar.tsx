@@ -10,7 +10,7 @@ import { SportPill } from './SportPill'
  */
 export function TopBar({ live, right }: { live?: boolean; right?: React.ReactNode }) {
   return (
-    <header className="flex h-12 items-center justify-between lg:h-8">
+    <header className="flex h-12 items-center justify-between lg:h-auto lg:min-h-8">
       <div className="flex items-center gap-2">
         {/* The rail carries the wordmark and the pill from lg up. */}
         <span className="lg:hidden">
