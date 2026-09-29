@@ -9,6 +9,7 @@ import { SPORT_RULES } from '@/lib/domain/sport'
 import { currentSport } from '@/lib/sport-cookie'
 import { Pill } from '@/components/ui/Pill'
 import { countLabel, formatNightDate, formatDiffAverage } from '@/lib/ui/format'
+import { StaleCheck } from '@/components/StaleCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,7 @@ export default async function GamesPage() {
 
   return (
     <main>
+      <StaleCheck />
       <TopBar />
       <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
         ← Ranks

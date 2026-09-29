@@ -21,6 +21,9 @@ export function TabBar() {
             <li key={tab.key} className="flex-1">
               <Link
                 href={tab.href}
+                // The whole page, not just its loading skeleton, fetched as
+                // soon as the bar is on screen, so a tab switch never waits.
+                prefetch={true}
                 aria-current={on ? 'page' : undefined}
                 className={`flex h-full flex-col items-center justify-center gap-1 font-display text-[12.5px] font-bold uppercase tracking-[0.12em] ${on ? 'text-accent' : 'text-faint'}`}
               >

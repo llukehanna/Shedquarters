@@ -102,6 +102,21 @@ export async function currentPlayerId(): Promise<string | null> {
 }
 
 /**
+ * Whether this phone is signed in, claimed or not, for a public page that
+ * shows extra controls to the house without redirecting anyone else. Same
+ * contract as currentPlayerId(): only "no valid session" is false.
+ */
+export async function isSignedIn(): Promise<boolean> {
+  try {
+    await requireSession()
+    return true
+  } catch (err) {
+    if (err instanceof Error && err.message === 'unauthorized') return false
+    throw err
+  }
+}
+
+/**
  * Handle a PIN submitted at the gate. On success, issues the signed session
  * cookie for an unclaimed phone. Every other outcome sets nothing.
  */
