@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { SHIELDS_MESSAGE } from '@/lib/domain/easter-egg'
 import { FOCUSABLE_SELECTOR, nextTrapFocus } from '@/lib/ui/focus'
@@ -8,11 +9,15 @@ import { FOCUSABLE_SELECTOR, nextTrapFocus } from '@/lib/ui/focus'
 /**
  * What seven quick taps on the wordmark get you.
  *
- * Everything here is `fixed` and lives outside the document flow, so it can
- * hang off the wordmark on any screen — the top bar, the gate, the who-are-
- * you list — without moving a single pixel of that screen's layout, whether
- * it is open or not. Nothing is written anywhere: close it and it is gone
- * until somebody earns it again.
+ * Everything here is `fixed` and lives outside the document flow, portaled to
+ * <body> so it can hang off the wordmark on any screen — the top bar, the gate,
+ * the who-are-you list — without moving a single pixel of that screen's layout,
+ * whether it is open or not. Portaling is necessary because glass containers
+ * with backdrop-filter create a containing block for fixed descendants; the rail
+ * and other containers must not trap the reveal inside their bounds.
+ *
+ * Nothing is written anywhere: close it and it is gone until somebody earns it
+ * again.
  *
  * It claims `aria-modal`, so it has to behave like one. Taps are handled by
  * the panel covering the viewport, but keyboards go where they like, and the
@@ -33,6 +38,10 @@ import { FOCUSABLE_SELECTOR, nextTrapFocus } from '@/lib/ui/focus'
  * joke than one that arrives plainly.
  */
 export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const reduced = useReducedMotion()
   const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocusedRef = useRef<HTMLElement | null>(null)
@@ -107,7 +116,7 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
   // horizontal scroll, and it reads like a chant, which is the point.
   const words = SHIELDS_MESSAGE.split(' ')
 
-  return (
+  const content = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -172,4 +181,6 @@ export function ShieldsReveal({ open, onClose }: { open: boolean; onClose: () =>
       )}
     </AnimatePresence>
   )
+
+  return mounted ? createPortal(content, document.body) : null
 }

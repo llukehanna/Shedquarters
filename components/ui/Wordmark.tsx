@@ -18,9 +18,9 @@ import { ShieldsReveal } from './ShieldsReveal'
  * button: a button would pick up the global pointer cursor, a focus ring and
  * a "button" announcement, which is a lot of signposting for something meant
  * to be found by accident. No call site wraps the wordmark in a link, so
- * these taps never had anywhere else to go. The reveal renders `fixed`, as a
- * sibling of the mark rather than a wrapper around it, so no screen the
- * wordmark sits on moves by a pixel whether it is open or not.
+ * these taps never had anywhere else to go. The reveal renders `fixed` via
+ * createPortal to <body>, so glass containers with backdrop-filter do not
+ * create a containing block that would trap the panel inside their bounds.
  *
  * @param size stacked only, in px; the desktop rail uses 52 so QUARTERS fits
  */
