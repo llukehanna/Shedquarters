@@ -3,8 +3,13 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { FOCUSABLE_SELECTOR } from '@/lib/ui/focus'
+import { DESKTOP_QUERY, useMediaQuery } from '@/lib/ui/media'
 
-/** A bottom sheet over a dimmed backdrop. Tapping the backdrop or Escape closes it. */
+/**
+ * A bottom sheet over a dimmed backdrop on a phone; a centred dialog from lg
+ * up. Tapping the backdrop or Escape closes it. Either way it wears the glass
+ * top highlight and the lit edge.
+ */
 export function Sheet({
   open,
   onClose,
@@ -16,6 +21,7 @@ export function Sheet({
   label: string
   children: React.ReactNode
 }) {
+  const desktop = useMediaQuery(DESKTOP_QUERY)
   const sheetRef = useRef<HTMLDivElement>(null)
   const previouslyFocusedRef = useRef<HTMLElement | null>(null)
 
@@ -84,6 +90,7 @@ export function Sheet({
         <>
           <motion.div
             key="backdrop"
+            data-testid="sheet-backdrop"
             className="fixed inset-0 z-40 bg-black/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -97,13 +104,14 @@ export function Sheet({
             aria-modal="true"
             aria-label={label}
             tabIndex={-1}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[22px] border-t border-accent/35 bg-gradient-to-b from-sheet-top to-sheet-bottom px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[22px] bg-gradient-to-b from-sheet-top to-sheet-bottom px-4 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_14%,transparent)] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:rounded-[22px] lg:border lg:border-fg/10 lg:pt-5 lg:pb-5 lg:shadow-[inset_0_1px_0_color-mix(in_srgb,var(--fg)_14%,transparent),0_30px_80px_rgb(0_0_0/0.45)]"
+            initial={desktop ? { opacity: 0, scale: 0.96 } : { y: '100%' }}
+            animate={desktop ? { opacity: 1, scale: 1 } : { y: 0 }}
+            exit={desktop ? { opacity: 0, scale: 0.96 } : { y: '100%' }}
+            transition={desktop ? { duration: 0.2, ease: [0.32, 0.72, 0, 1] } : { type: 'spring', damping: 32, stiffness: 320 }}
           >
-            <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-fg/25" />
+            <span aria-hidden="true" className="card-edge opacity-60" />
+            <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-fg/25 lg:hidden" />
             {children}
           </motion.div>
         </>
