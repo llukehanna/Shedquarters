@@ -27,6 +27,8 @@
   --faint: #6b7896;
   --sheet-top: #0c1a3a;
   --sheet-bottom: #050c1f;
+  /* The glow behind the desktop rail. Old Glory Blue: die's accent is white and would glow grey. */
+  --ambient: radial-gradient(closest-side, rgb(30 90 190 / 0.55), rgb(10 49 97 / 0.18) 55%, transparent);
 }
 
 [data-sport='spikeball'] {
@@ -49,6 +51,7 @@
   --faint: #6b6b62;
   --sheet-top: #1a1a14;
   --sheet-bottom: #0a0a0a;
+  --ambient: radial-gradient(closest-side, rgb(255 212 0 / 0.16), rgb(255 170 0 / 0.04) 55%, transparent);
 }
 
 [data-sport='both'] {
@@ -63,6 +66,11 @@
   --faint: #6a6a74;
   --sheet-top: #16161c;
   --sheet-bottom: #0b0b0e;
+}
+
+/* One easing for every interface transition: fast out, soft landing (lukeghanna.com's). */
+:root {
+  --ease: cubic-bezier(.32, .72, 0, 1);
 }
 
 @theme inline {
@@ -121,6 +129,8 @@
     font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* A stacking context, so the fixed .ambient glow (z-index -1) paints above this gradient and below everything else. */
+    isolation: isolate;
   }
 
   button:not(:disabled) {
@@ -158,4 +168,65 @@
   background: linear-gradient(150deg, var(--panel-hi), var(--panel-deep));
   border: 1.5px solid var(--panel-edge);
   color: var(--panel-ink);
+}
+
+/*
+ * Glass, lukeghanna.com's identifying material: a faint wash of the
+ * foreground, a hairline, an inner top highlight and a blur. It takes its
+ * tint from the sport, so it reads navy on die and warm black on spikeball.
+ */
+@utility glass {
+  background: linear-gradient(170deg, color-mix(in srgb, var(--fg) 7%, transparent), color-mix(in srgb, var(--fg) 2%, transparent));
+  border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--fg) 14%, transparent), 0 30px 80px rgb(0 0 0 / 0.35);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+/* A scroll container with no visible scrollbar (wheel, touch and keyboard still scroll it). */
+@utility scroll-quiet {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * The hairline that lights along a card's top edge when it lifts or is
+ * pressed. It sits at opacity 0 until a state variant turns it up. Set
+ * --card-edge-color where the accent would vanish (spikeball's #1 row is
+ * yellow on yellow).
+ */
+@utility card-edge {
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 60px;
+  z-index: 1;
+  height: 1px;
+  pointer-events: none;
+  background-image: linear-gradient(90deg, transparent, var(--card-edge-color, var(--accent)), transparent);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease);
+}
+
+/* A fixed glow behind the desktop rail, so its glass has something to blur. */
+@utility ambient {
+  position: fixed;
+  top: -300px;
+  left: -260px;
+  z-index: -1;
+  width: 1100px;
+  height: 1100px;
+  border-radius: 9999px;
+  background: var(--ambient);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
