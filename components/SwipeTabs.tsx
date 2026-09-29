@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { SWIPE, classifySwipe, swipeTarget } from '@/lib/ui/swipe'
+import { DESKTOP_QUERY, matches } from '@/lib/ui/media'
 
 // How far the page follows a finger: a hint that the swipe is being read, not
 // a full page drag. Less again when there is no tab on that side.
@@ -15,9 +16,10 @@ const NO_SWIPE = '[data-no-swipe], input, textarea, select, [role="dialog"]'
 
 /**
  * Swipe left or right anywhere on a tab to go to the next or previous one
- * (Ranks, Table, Me). The listeners are passive and never cancel the touch, so
- * vertical scrolling is untouched. A drag only counts once it is clearly
- * sideways, and nothing happens while a sheet or dialog is open.
+ * (Ranks, Table, Me). Does nothing at desktop width, where the rail is the navigation.
+ * The listeners are passive and never cancel the touch, so vertical scrolling is untouched.
+ * A drag only counts once it is clearly sideways, and nothing happens while a sheet or
+ * dialog is open.
  */
 export function SwipeTabs({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -50,6 +52,9 @@ export function SwipeTabs({ children, className }: { children: React.ReactNode; 
       start = null
       axis = null
       if (e.touches.length !== 1) return
+      // From lg up the rail is the navigation and the tab bar is gone, so a
+      // touchscreen laptop or a landscape iPad doesn't swipe between tabs.
+      if (matches(DESKTOP_QUERY)) return
       const target = e.target as Element | null
       if (target?.closest(NO_SWIPE) || document.querySelector('[role="dialog"]')) return
       const t = e.touches[0]

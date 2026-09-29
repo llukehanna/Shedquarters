@@ -8,6 +8,7 @@ import { TopBar } from '@/components/ui/TopBar'
 import { SPORT_RULES } from '@/lib/domain/sport'
 import { currentSport } from '@/lib/sport-cookie'
 import { Pill } from '@/components/ui/Pill'
+import { SectionRule } from '@/components/ui/SectionRule'
 import { countLabel, formatNightDate, formatDiffAverage } from '@/lib/ui/format'
 import { StaleCheck } from '@/components/StaleCheck'
 
@@ -31,11 +32,11 @@ export default async function GamesPage() {
     <main>
       <StaleCheck />
       <TopBar />
-      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg">
+      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg lg:hidden">
         ← Ranks
       </Link>
 
-      <h1 className="headline text-[46px]">
+      <h1 className="headline text-[46px] lg:text-[60px]">
         Game <span className="text-accent">Log</span>
       </h1>
       <p className="eyebrow mt-2 mb-4">
@@ -49,12 +50,14 @@ export default async function GamesPage() {
         </p>
       ) : (
         nights.map((night) => (
-          <section key={night.sessionId} className="mt-6 first:mt-0">
-            <h2 className="mb-2 flex items-baseline justify-between">
-              <span className="eyebrow text-accent">{formatNightDate(night.date)}</span>
-              <span className="eyebrow text-faint">{countLabel(liveGameCount(night.games), 'game')}</span>
-            </h2>
-            <ul className="flex flex-col gap-2">
+          <section key={night.sessionId} className="mt-6 first:mt-0 lg:mt-10">
+            <SectionRule
+              label={formatNightDate(night.date)}
+              labelClassName="text-accent"
+              index={countLabel(liveGameCount(night.games), 'game')}
+              className="mb-2"
+            />
+            <ul className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
               {night.games.map((g) => (
                 <GameRow key={g.ord} game={g} players={players} delta={deltas.get(g.ord)} />
               ))}

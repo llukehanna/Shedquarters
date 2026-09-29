@@ -135,7 +135,7 @@ export function SessionSetup({ sport, players }: { sport: Sport; players: Player
         </p>
       )}
 
-      <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] mt-6">
+      <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-6 mt-6">
         <Button disabled={!ready || starting} onClick={handleStart}>
           {starting ? 'Starting…' : ready ? 'Game on →' : `Pick ${needed - picked.length} more`}
         </Button>

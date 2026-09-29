@@ -48,6 +48,27 @@ pins('beer die (the default)', ":root, [data-sport='beer_die']", DIE)
 pins('spikeball', "[data-sport='spikeball']", SPIKE)
 pins('a page showing both', "[data-sport='both']", BOTH)
 
+describe('the visual language borrowed from lukeghanna.com', () => {
+  it('has one easing curve', () => {
+    expect(css).toMatch(/--ease:\s*cubic-bezier\(\.32,\s*\.72,\s*0,\s*1\);/)
+  })
+
+  it('gives each sport an ambient glow', () => {
+    expect(block(":root, [data-sport='beer_die']")).toMatch(/--ambient:\s*radial-gradient\(/)
+    expect(block("[data-sport='spikeball']")).toMatch(/--ambient:\s*radial-gradient\(/)
+  })
+
+  it('defines the glass, card-edge, scroll-quiet and ambient utilities', () => {
+    for (const name of ['glass', 'card-edge', 'scroll-quiet', 'ambient']) {
+      expect(css).toMatch(new RegExp(`@utility ${name} \\{`))
+    }
+  })
+
+  it('switches transitions off under reduced motion', () => {
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/)
+  })
+})
+
 describe('the tokens Tailwind builds utilities from', () => {
   it('point every colour at the current sport', () => {
     for (const token of Object.keys(DIE)) {

@@ -7,6 +7,7 @@ import { TopBar } from '@/components/ui/TopBar'
 import { SportCard } from '@/components/ui/SportCard'
 import { PlayerEditor } from '@/components/PlayerEditor'
 import { isSignedIn } from '@/lib/auth'
+import { SectionRule } from '@/components/ui/SectionRule'
 import { SPORT_RULES, type Sport } from '@/lib/domain/sport'
 import { countLabel } from '@/lib/ui/format'
 import { StaleCheck } from '@/components/StaleCheck'
@@ -41,7 +42,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
   return (
     // Bleeds past the layout's gutter so the neutral ground reaches the edges.
-    <main data-sport="both" className="-mx-4 -mt-2 min-h-dvh bg-ground px-4 pt-2 text-fg">
+    // On desktop the neutral ground becomes a panel inside the content area
+    // instead of bleeding to the edges.
+    <main
+      data-sport="both"
+      className="-mx-4 -mt-2 min-h-dvh bg-ground px-4 pt-2 text-fg lg:mx-0 lg:mt-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-fg/9 lg:p-8 lg:pt-5"
+    >
       <StaleCheck />
       <TopBar
         right={
@@ -51,7 +57,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         }
       />
 
-      <h1 className="headline mt-2 text-[54px]">{me.displayName}</h1>
+      <h1 className="headline mt-2 text-[54px] lg:text-[72px]">{me.displayName}</h1>
       {me.nicknames.length > 0 && (
         <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[14px] text-fg/70">
           {me.nicknames.map((n) => (
@@ -65,15 +71,18 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
       {signedIn && <PlayerEditor player={me} />}
 
-      <SportCard sport="beer_die" summary={die} />
-      <SportCard sport="spikeball" summary={spike} />
+      <div className="xl:grid xl:grid-cols-2 xl:items-start xl:gap-x-4">
+        <SportCard sport="beer_die" summary={die} />
+        <SportCard sport="spikeball" summary={spike} />
+      </div>
 
       <section className="mt-6 pb-4">
-        <h2 className="mb-1 flex items-center gap-2">
-          <span className="eyebrow flex-1">Head to head</span>
-          <span className="eyebrow w-[54px] text-center text-[10.5px]">Die</span>
-          <span className="eyebrow w-[54px] text-center text-[10.5px]">Spike</span>
-        </h2>
+        <SectionRule label="Head to head" className="mb-1">
+          <span className="flex gap-2">
+            <span className="eyebrow w-[54px] text-center text-[10.5px]">Die</span>
+            <span className="eyebrow w-[54px] text-center text-[10.5px]">Spike</span>
+          </span>
+        </SectionRule>
         {rivals.length === 0 ? (
           <p className="surface rounded-2xl px-3 py-4 text-[13px] text-muted">No head-to-head games logged yet.</p>
         ) : (
@@ -120,7 +129,7 @@ function Chip({ sport, record, me, them }: { sport: Sport; record: WinLoss | nul
       data-sport={sport}
       href={`/h2h?a=${me}&b=${them}&sport=${sport}`}
       aria-label={`${record.wins}–${record.losses} in ${name}`}
-      className="panel flex h-8 w-[54px] items-center justify-center rounded-lg font-mono text-[13px] font-bold"
+      className="panel flex h-8 w-[54px] items-center justify-center rounded-lg font-mono text-[13px] font-bold transition-transform duration-250 ease-(--ease) active:scale-95 lg:hover:-translate-y-0.5"
     >
       {record.wins}–{record.losses}
     </a>

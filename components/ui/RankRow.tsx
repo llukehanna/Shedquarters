@@ -3,7 +3,11 @@ import { Pill } from './Pill'
 import { formatMovement, formatMovementLabel, formatStreak } from '@/lib/ui/format'
 import type { Streak } from '@/lib/domain/stats'
 
-/** The ESPN-style standings row. #1 wears the panel colour and the Shed of the Table badge. */
+/**
+ * The ESPN-style standings row. #1 wears the panel colour and the Shed of the Table badge.
+ * On desktop a hovered row lifts onto glass and its siblings dim (the ranks list is
+ * `group/ranks`). Pressing a row on any screen gives it the same glass and edge without the lift.
+ */
 export function RankRow({
   rank,
   name,
@@ -30,8 +34,14 @@ export function RankRow({
   return (
     <Link
       href={href}
-      className={`mb-[5px] flex min-h-12 items-center overflow-hidden rounded-[7px] pr-3 ${first ? 'panel min-h-[54px]' : 'surface'} ${provisional ? 'opacity-60' : ''}`}
+      className={`group/row relative isolate mb-[5px] flex min-h-12 items-center overflow-hidden rounded-[7px] pr-3 transition-[translate,opacity,background,border-color,box-shadow] duration-250 ease-(--ease) active:duration-150 lg:group-hover/ranks:opacity-55 lg:hover:-translate-y-0.5 lg:hover:opacity-100 ${
+        first
+          ? 'panel min-h-[54px] [--card-edge-color:var(--panel-ink)] lg:hover:shadow-[0_24px_60px_rgb(0_0_0/0.45)]'
+          : 'surface active:glass lg:hover:glass'
+      } ${provisional ? 'opacity-60' : ''}`}
     >
+      {/* Lights along the top edge while the row is hovered (desktop) or pressed. */}
+      <span aria-hidden="true" className="card-edge group-active/row:opacity-60 lg:group-hover/row:opacity-60" />
       <span
         className={`flex w-11 self-stretch items-center justify-center border-r font-display text-[21px] font-extrabold ${first ? 'border-panel-ink/25 text-panel-ink' : 'border-accent/12 text-accent'}`}
       >
@@ -39,7 +49,11 @@ export function RankRow({
       </span>
       <span className="ml-3 min-w-0 flex-1">
         <span className="flex items-center gap-2">
-          <span className="truncate font-display text-[19px] font-bold uppercase">{name}</span>
+          <span
+            className={`truncate font-display text-[19px] font-bold uppercase transition-colors duration-250 ease-(--ease) ${first ? '' : 'group-active/row:text-accent lg:group-hover/row:text-accent'}`}
+          >
+            {name}
+          </span>
           {first && <Pill tone="onPanel">Shed of the Table</Pill>}
           {provisional && <Pill tone={first ? 'onPanelDim' : 'dim'}>Provisional</Pill>}
         </span>
