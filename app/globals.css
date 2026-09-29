@@ -106,6 +106,31 @@
   --font-body: var(--font-inter-tight);
 }
 
+/*
+ * Where the phone's floating tab bar sits (components/ui/TabBar.tsx), and so
+ * where anything that has to clear it stops. The bar is 4rem tall.
+ *
+ * Opened from the home screen the page runs to the bottom of the glass, but
+ * without viewport-fit=cover (see app/layout.tsx) iOS reports every safe-area
+ * inset as 0, so the bar can't learn where the rounded corners and the home
+ * indicator are. It sits 1.25rem in from the sides and the bottom instead: a
+ * capsule that far in is concentric with an iPhone's display corners and
+ * clears the home indicator. In Safari the toolbar is below the page, so the
+ * bar can sit tighter.
+ */
+:root {
+  --tabbar-x: 0.75rem;
+  --tabbar-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  --tabbar-top: calc(var(--tabbar-bottom) + 4rem);
+}
+
+@media (display-mode: standalone) {
+  :root {
+    --tabbar-x: 1.25rem;
+    --tabbar-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+}
+
 @layer base {
   html {
     color-scheme: dark;

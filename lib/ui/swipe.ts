@@ -15,19 +15,24 @@ export function swipeTarget(pathname: string, direction: SwipeDirection): string
   return next ? next.href : null
 }
 
-/** How far, how straight and how quick a swipe has to be. */
-export const SWIPE = { minDistance: 70, straightness: 1.8, maxMs: 700, edge: 24 } as const
+/**
+ * How far, how straight and how quick a swipe has to be. A quick flick needs
+ * `minDistance`; a slow drag has to carry the page `commitFraction` of the
+ * screen, like pushing a card most of the way off.
+ */
+export const SWIPE = { minDistance: 50, commitFraction: 0.3, straightness: 1.8, maxMs: 700, edge: 24 } as const
 
 /**
  * Whether a finished touch was a swipe, and which way. It has to be clearly
- * sideways (so scrolling never changes tab), far enough, and quick. It must
- * start away from the screen edges, which belong to the phone's own back
- * gesture.
+ * sideways (so scrolling never changes tab), and either a quick flick or a
+ * drag a good way across. It must start away from the screen edges, which
+ * belong to the phone's own back gesture.
  */
 export function classifySwipe(g: { dx: number; dy: number; ms: number; startX: number; width: number }): SwipeDirection | null {
   if (g.startX < SWIPE.edge || g.startX > g.width - SWIPE.edge) return null
   if (Math.abs(g.dx) < SWIPE.minDistance) return null
   if (Math.abs(g.dx) <= SWIPE.straightness * Math.abs(g.dy)) return null
-  if (g.ms > SWIPE.maxMs) return null
+  const far = Math.abs(g.dx) >= g.width * SWIPE.commitFraction
+  if (!far && g.ms > SWIPE.maxMs) return null
   return g.dx < 0 ? 'left' : 'right'
 }
