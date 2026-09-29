@@ -5,8 +5,11 @@ import { getPlayers, getGameLogAll } from '@/lib/queries'
 import { headToHeadBoth, playerSportSummary, type WinLoss } from '@/lib/domain/player-summary'
 import { TopBar } from '@/components/ui/TopBar'
 import { SportCard } from '@/components/ui/SportCard'
+import { PlayerEditor } from '@/components/PlayerEditor'
+import { isSignedIn } from '@/lib/auth'
 import { SPORT_RULES, type Sport } from '@/lib/domain/sport'
 import { countLabel } from '@/lib/ui/format'
+import { StaleCheck } from '@/components/StaleCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +22,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const { id } = await params
   // getGameLogAll() rather than getGames(): same rows, plus the timestamp the
   // Ghost badge needs.
-  const [players, dieRatings, dieGames, spikeRatings, spikeGames] = await Promise.all([
+  const [signedIn, players, dieRatings, dieGames, spikeRatings, spikeGames] = await Promise.all([
+    // The page is public; only a signed-in phone gets the Edit button.
+    isSignedIn(),
     getPlayers(),
     getRatings('beer_die'),
     getGameLogAll('beer_die'),
@@ -37,6 +42,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   return (
     // Bleeds past the layout's gutter so the neutral ground reaches the edges.
     <main data-sport="both" className="-mx-4 -mt-2 min-h-dvh bg-ground px-4 pt-2 text-fg">
+      <StaleCheck />
       <TopBar
         right={
           <Link href="/" className="eyebrow flex min-h-11 items-center text-fg">
@@ -56,6 +62,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       <p className="eyebrow mt-2">
         {me.isHousemate ? 'Housemate' : 'Guest'} · {countLabel(die.played, 'die game')} · {spike.played} spikeball
       </p>
+
+      {signedIn && <PlayerEditor player={me} />}
 
       <SportCard sport="beer_die" summary={die} />
       <SportCard sport="spikeball" summary={spike} />

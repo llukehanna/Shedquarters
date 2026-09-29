@@ -65,7 +65,7 @@ It installs to the home screen as a web app and has its own offline screen.
 - **OpenSkill** (Plackett–Luce) for ratings
 - **Tailwind CSS 4**, **Motion** for animation
 - **Vercel**: Fluid Compute, a nightly Cron backup to Vercel Blob
-- **Vitest**: 683 tests, most of them against a real Postgres, plus jsdom component tests; GitHub Actions CI
+- **Vitest**: 694 tests, most of them against a real Postgres, plus jsdom component tests; GitHub Actions CI
 
 ## Running locally
 
@@ -88,7 +88,7 @@ Checks:
 npx next build           # first: it generates the route types tsc needs
 npx tsc --noEmit
 npx eslint
-npm test                 # 683 tests across 49 files
+npm test                 # 694 tests across 51 files
 npm run smoke            # a full session against the local DB: start, log, undo, replay, end
 ```
 
@@ -126,7 +126,7 @@ Each of these made it into code or was caught in review, and each changed how th
 ## Status
 
 - Live and in use at [shed.lukeghanna.com](https://shed.lukeghanna.com). The rankings, game log and player pages are public; changing anything needs the house PIN or invite link
-- 683 tests across 49 files; build, typecheck, lint and tests run in CI against Postgres 17
+- 694 tests across 51 files; build, typecheck, lint and tests run in CI against Postgres 17
 - One shared PIN, no per-person accounts, by design. A phone claims a player with "Who are you?", which is identity, not authentication
 - Beer die (2v2 and 3v3) and spikeball (2v2) only, each rated separately. No rating decay for inactive players yet (a "Ghost" badge marks them instead)
 - Known gaps and cleanup are tracked in [docs/FOLLOWUPS.md](docs/FOLLOWUPS.md)

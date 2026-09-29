@@ -26,7 +26,7 @@ vi.mock('next/headers', () => ({
 const identityMock = vi.hoisted(() => ({ getInviteVersion: vi.fn() }))
 vi.mock('@/lib/identity', () => identityMock)
 
-import { currentPlayerId } from '@/lib/auth'
+import { currentPlayerId, isSignedIn } from '@/lib/auth'
 import { signSessionToken } from '@/lib/auth-token'
 
 const keys = { secret: 'a-long-random-auth-secret-for-tests', passcode: '4821' }
@@ -74,5 +74,48 @@ describe('currentPlayerId', () => {
   it('propagates a missing-secret misconfiguration instead of reporting anonymous', async () => {
     delete process.env.AUTH_SECRET
     await expect(currentPlayerId()).rejects.toThrow('AUTH_SECRET is not set')
+  })
+})
+
+// isSignedIn() is for pages that show extra controls to a signed-in phone
+// (the profile's Edit button) without redirecting anyone who isn't. Same
+// contract as currentPlayerId(): only "no valid session" means false.
+describe('isSignedIn', () => {
+  const originalSecret = process.env.AUTH_SECRET
+  const originalPasscode = process.env.HOUSE_PASSCODE
+
+  beforeEach(() => {
+    process.env.AUTH_SECRET = keys.secret
+    process.env.HOUSE_PASSCODE = keys.passcode
+    identityMock.getInviteVersion.mockReset()
+    h.setCookie(undefined)
+  })
+
+  afterEach(() => {
+    process.env.AUTH_SECRET = originalSecret
+    process.env.HOUSE_PASSCODE = originalPasscode
+  })
+
+  it('is false with no session cookie', async () => {
+    identityMock.getInviteVersion.mockResolvedValue(1)
+    expect(await isSignedIn()).toBe(false)
+  })
+
+  it('is true for a signed-in phone that has not picked its name yet', async () => {
+    h.setCookie(signSessionToken({ issuedAtMs: Date.now(), playerId: null, inviteVersion: 1 }, keys))
+    identityMock.getInviteVersion.mockResolvedValue(1)
+    expect(await isSignedIn()).toBe(true)
+  })
+
+  it('is false under a stale invite version', async () => {
+    h.setCookie(signSessionToken({ issuedAtMs: Date.now(), playerId: player, inviteVersion: 1 }, keys))
+    identityMock.getInviteVersion.mockResolvedValue(2)
+    expect(await isSignedIn()).toBe(false)
+  })
+
+  it('propagates a database error instead of reporting signed out', async () => {
+    h.setCookie(signSessionToken({ issuedAtMs: Date.now(), playerId: player, inviteVersion: 1 }, keys))
+    identityMock.getInviteVersion.mockRejectedValue(new Error('connection refused'))
+    await expect(isSignedIn()).rejects.toThrow('connection refused')
   })
 })
