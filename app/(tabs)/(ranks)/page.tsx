@@ -8,6 +8,7 @@ import { shedOfShame, type ShameEntry } from '@/lib/domain/shame'
 import { PROVISIONAL_GAMES } from '@/lib/domain/ratings'
 import { TopBar } from '@/components/ui/TopBar'
 import { RankRow } from '@/components/ui/RankRow'
+import { SectionRule } from '@/components/ui/SectionRule'
 import { InstallHint } from '@/components/InstallHint'
 import { SPORT_RULES } from '@/lib/domain/sport'
 import { currentSport } from '@/lib/sport-cookie'
@@ -73,12 +74,19 @@ export default async function Ranks() {
           : formatRating(entry.ordinal),
   }))
 
+  // The right column's sections are numbered in the order they render, the
+  // way lukeghanna.com numbers its sections. A missing one takes no number.
+  const asideSections = [runs.length > 0 && 'runs', carried.length > 0 && 'carried', shameEntries.length > 0 && 'shame'].filter(
+    (s): s is string => typeof s === 'string',
+  )
+  const asideIndex = (key: string) => String(asideSections.indexOf(key) + 1).padStart(2, '0')
+
   return (
     <main>
       <TopBar live={table !== null} />
       <InstallHint />
 
-      <h1 className="headline mt-2 text-[52px]">
+      <h1 className="headline mt-2 text-[52px] lg:text-[68px]">
         Power
         <br />
         <span className="text-accent">Rankings</span>
@@ -87,115 +95,124 @@ export default async function Ranks() {
         {SPORT_RULES[sport].name} · {countLabel(played, 'game')}
       </p>
 
-
-      {ratings.length === 0 ? (
-        <section className="mt-12 text-center">
-          <p className="headline text-[104px] text-accent">0</p>
-          <p className="eyebrow mt-2">Games played</p>
-          <h2 className="headline mt-6 text-[36px]">
-            Season starts <span className="text-accent">tonight</span>
-          </h2>
-          <p className="mx-auto mt-3 max-w-xs text-[14px] leading-relaxed text-muted">
-            Log games at the table. Rankings show up after the first game and firm up once people
-            hit {PROVISIONAL_GAMES}.
-          </p>
-          <Link
-            href="/table"
-            className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-panel-glow to-panel-shade font-display text-[23px] font-extrabold italic uppercase text-panel-ink ring-1 ring-inset ring-panel-ink/35"
-          >
-            Go to the table →
-          </Link>
-        </section>
-      ) : (
-        <ol>
-          {ratings.map((r, i) => (
-            <li key={r.playerId}>
-              <RankRow
-                rank={i + 1}
-                name={name(r.playerId)}
-                rating={formatRating(r.ordinal)}
-                record={formatRecord(r.wins, r.games)}
-                href={`/players/${r.playerId}`}
-                first={i === 0}
-                provisional={r.provisional}
-                streak={streaksById.get(r.playerId) ?? null}
-                movement={movement.get(r.playerId) ?? null}
-              />
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {runs.length > 0 && (
-        <section className="mt-8">
-          <h2 className="eyebrow mb-2">Longest runs</h2>
-          <ul className="surface rounded-2xl px-3">
-            {runs.map((r, i) => (
-              <li key={i} className="flex min-h-11 items-center border-b border-accent/8 last:border-b-0">
-                <span className="w-7 font-display text-[18px] font-extrabold text-accent">{i + 1}</span>
-                <span className="flex-1 font-display text-[17px] font-bold uppercase">
-                  {r.roster.map(name).join(' · ')}
-                </span>
-                <span className="headline text-[26px] text-accent">{r.length}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {carried.length > 0 && (
-        <section className="mt-6">
-          <h2 className="eyebrow mb-2">Most carried</h2>
-          <ul className="surface rounded-2xl px-3 py-1">
-            {carried.map((c, i) => (
-              <li key={i} className="border-b border-accent/8 py-2.5 text-[13.5px] leading-snug last:border-b-0">
-                <span className="font-display text-[17px] font-bold uppercase">{name(c.playerId)}</span>{' '}
-                wins <b className="text-accent">{formatPercent(c.withRate)}</b> with {name(c.teammateId)} (
-                {countLabel(c.withGames, 'game')}), {formatPercent(c.withoutRate)} without (
-                {c.withoutGames})
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {shameEntries.length > 0 && (
-        <section className="mt-6">
-          <h2 className="eyebrow mb-2">Shed of shame</h2>
-          <ul className="surface rounded-2xl px-3">
-            {shameEntries.map((e) => (
-              <li
-                key={e.key}
-                className="flex min-h-11 items-center gap-3 border-b border-accent/8 py-2 last:border-b-0"
+      <div className="lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10">
+        <div>
+          {ratings.length === 0 ? (
+            <section className="mt-12 text-center lg:mx-auto lg:max-w-md">
+              <p className="headline text-[104px] text-accent">0</p>
+              <p className="eyebrow mt-2">Games played</p>
+              <h2 className="headline mt-6 text-[36px]">
+                Season starts <span className="text-accent">tonight</span>
+              </h2>
+              <p className="mx-auto mt-3 max-w-xs text-[14px] leading-relaxed text-muted">
+                Log games at the table. Rankings show up after the first game and firm up once people
+                hit {PROVISIONAL_GAMES}.
+              </p>
+              <Link
+                href="/table"
+                className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-panel-glow to-panel-shade font-display text-[23px] font-extrabold italic uppercase text-panel-ink ring-1 ring-inset ring-panel-ink/35"
               >
-                <span className="w-[104px] shrink-0 text-[11px] font-bold uppercase leading-tight tracking-[0.08em] text-muted">
-                  {e.label}
-                </span>
-                <span className="flex-1 truncate font-display text-[17px] font-bold uppercase">
-                  {e.name}
-                </span>
-                <span className="font-mono text-[16px] font-bold text-down">{e.value}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+                Go to the table →
+              </Link>
+            </section>
+          ) : (
+            <section>
+              <SectionRule as="div" label="Standings" index={countLabel(ratings.length, 'player')} className="mb-3.5 hidden lg:flex" />
+              <ol className="group/ranks">
+                {ratings.map((r, i) => (
+                  <li key={r.playerId}>
+                    <RankRow
+                      rank={i + 1}
+                      name={name(r.playerId)}
+                      rating={formatRating(r.ordinal)}
+                      record={formatRecord(r.wins, r.games)}
+                      href={`/players/${r.playerId}`}
+                      first={i === 0}
+                      provisional={r.provisional}
+                      streak={streaksById.get(r.playerId) ?? null}
+                      movement={movement.get(r.playerId) ?? null}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+        </div>
+        <aside className="lg:sticky lg:top-8">
+          {runs.length > 0 && (
+            <section className="mt-8 lg:mt-0">
+              <SectionRule label="Longest runs" index={asideIndex('runs')} className="mb-2" />
+              <ul className="surface rounded-2xl px-3">
+                {runs.map((r, i) => (
+                  <li key={i} className="flex min-h-11 items-center border-b border-accent/8 last:border-b-0">
+                    <span className="w-7 font-display text-[18px] font-extrabold text-accent">{i + 1}</span>
+                    <span className="flex-1 font-display text-[17px] font-bold uppercase">
+                      {r.roster.map(name).join(' · ')}
+                    </span>
+                    <span className="headline text-[26px] text-accent">{r.length}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-      <Link
-        href="/games"
-        className="surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
-      >
-        Every game
-        <span aria-hidden className="text-accent">→</span>
-      </Link>
+          {carried.length > 0 && (
+            <section className="mt-6 lg:first:mt-0">
+              <SectionRule label="Most carried" index={asideIndex('carried')} className="mb-2" />
+              <ul className="surface rounded-2xl px-3 py-1">
+                {carried.map((c, i) => (
+                  <li key={i} className="border-b border-accent/8 py-2.5 text-[13.5px] leading-snug last:border-b-0">
+                    <span className="font-display text-[17px] font-bold uppercase">{name(c.playerId)}</span>{' '}
+                    wins <b className="text-accent">{formatPercent(c.withRate)}</b> with {name(c.teammateId)} (
+                    {countLabel(c.withGames, 'game')}), {formatPercent(c.withoutRate)} without (
+                    {c.withoutGames})
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-      <Link
-        href="/h2h"
-        className="surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
-      >
-        Head to head
-        <span aria-hidden className="text-accent">→</span>
-      </Link>
+          {shameEntries.length > 0 && (
+            <section className="mt-6 lg:first:mt-0">
+              <SectionRule label="Shed of shame" index={asideIndex('shame')} className="mb-2" />
+              <ul className="surface rounded-2xl px-3">
+                {shameEntries.map((e) => (
+                  <li
+                    key={e.key}
+                    className="flex min-h-11 items-center gap-3 border-b border-accent/8 py-2 last:border-b-0"
+                  >
+                    <span className="w-[104px] shrink-0 text-[11px] font-bold uppercase leading-tight tracking-[0.08em] text-muted">
+                      {e.label}
+                    </span>
+                    <span className="flex-1 truncate font-display text-[17px] font-bold uppercase">
+                      {e.name}
+                    </span>
+                    <span className="font-mono text-[16px] font-bold text-down">{e.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <Link
+            href="/games"
+            className="group/card relative overflow-hidden transition-colors duration-150 ease-(--ease) active:glass lg:hidden surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
+          >
+            <span aria-hidden="true" className="card-edge group-active/card:opacity-60" />
+            Every game
+            <span aria-hidden className="text-accent">→</span>
+          </Link>
+
+          <Link
+            href="/h2h"
+            className="group/card relative overflow-hidden transition-colors duration-150 ease-(--ease) active:glass lg:hidden surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
+          >
+            <span aria-hidden="true" className="card-edge group-active/card:opacity-60" />
+            Head to head
+            <span aria-hidden className="text-accent">→</span>
+          </Link>
+        </aside>
+      </div>
     </main>
   )
 }
