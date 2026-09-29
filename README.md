@@ -10,7 +10,7 @@ Someone at the table taps who won and what the losers finished on. Everyone else
 Ratings are [OpenSkill](https://github.com/philihp/openskill.js), replayed from the full game history on every change.
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="300" alt="Logging a game at the table: pick the winners, tap the losing score, pick the next challengers, and the rankings update">
+  <img src="docs/media/demo.gif" width="300" alt="Logging a game at the table: pick the winners, tap the losing score, pick the next challengers, then swipe across to the rankings">
 </p>
 
 <sub>Recorded from the real app against a local database of made-up players. [MP4](docs/media/demo.mp4)</sub>
