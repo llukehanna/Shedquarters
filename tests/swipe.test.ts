@@ -43,8 +43,12 @@ describe('classifySwipe', () => {
     expect(classifySwipe({ ...flick, dx: -40 })).toBeNull()
   })
 
-  it('ignores a slow drag', () => {
-    expect(classifySwipe({ ...flick, ms: 1000 })).toBeNull()
+  it('ignores a slow drag that stops short', () => {
+    expect(classifySwipe({ ...flick, dx: -90, ms: 1000 })).toBeNull()
+  })
+
+  it('takes a slow drag that carries the page a good way across', () => {
+    expect(classifySwipe({ ...flick, dx: -200, ms: 1500 })).toBe('left')
   })
 
   it('leaves the screen edges to the phone', () => {
