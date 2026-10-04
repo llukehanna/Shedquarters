@@ -13,7 +13,7 @@
  * failed expectation so it can gate a deploy in CI later.
  */
 
-const BASE = (process.argv[2] ?? 'https://house-ladder.vercel.app').replace(/\/$/, '')
+const BASE = (process.argv[2] ?? 'https://die.lukeghanna.com').replace(/\/$/, '')
 const INVITE_LINK = process.env.INVITE_LINK
 
 type Check = { name: string; ok: boolean; detail: string }
