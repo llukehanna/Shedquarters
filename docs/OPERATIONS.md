@@ -67,7 +67,7 @@ CI (`.github/workflows/ci.yml`) runs the same four against a Postgres 17 service
 ## Production
 
 Vercel (Hobby) + Neon (Free) + Vercel Blob, all on free tiers: 1M invocations a month, 100 CU-hours, 1 GB of Blob, and one daily cron.
-Served at [shed.lukeghanna.com](https://shed.lukeghanna.com) through a DNS-only Cloudflare CNAME to Vercel.
+Served at [die.lukeghanna.com](https://die.lukeghanna.com) through a DNS-only Cloudflare CNAME to Vercel.
 
 **Raise Neon's scale-to-zero idle timeout from the 5-minute default to 1 hour** (Neon → project → Settings → Compute).
 At the default the database sleeps between games, and a mid-session tap pays up to a 3-second cold start on the party iPad.
