@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Both dependencies are mocked so this test can run with no
-// BLOB_READ_WRITE_TOKEN and without ever touching the database — it is
-// exercising the auth gate in app/api/cron/backup/route.ts in isolation.
+// Both dependencies are mocked so this test can run with no KV binding and
+// without ever touching the database — it is exercising the auth gate in
+// app/api/cron/backup/route.ts in isolation.
 vi.mock('@/lib/backup', () => ({ assembleDump: vi.fn() }))
-vi.mock('@vercel/blob', () => ({ put: vi.fn() }))
+vi.mock('@/lib/backup-store', () => ({ putBackup: vi.fn() }))
 
 import { GET } from '@/app/api/cron/backup/route'
 import { assembleDump } from '@/lib/backup'
-import { put } from '@vercel/blob'
+import { putBackup } from '@/lib/backup-store'
 
 describe('GET /api/cron/backup', () => {
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('GET /api/cron/backup', () => {
     expect(res.status).toBe(500)
     expect(await res.json()).toEqual({ ok: false })
     expect(assembleDump).not.toHaveBeenCalled()
-    expect(put).not.toHaveBeenCalled()
+    expect(putBackup).not.toHaveBeenCalled()
   })
 
   it('rejects a request with no Authorization header before touching the database', async () => {
@@ -34,7 +34,7 @@ describe('GET /api/cron/backup', () => {
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ ok: false })
     expect(assembleDump).not.toHaveBeenCalled()
-    expect(put).not.toHaveBeenCalled()
+    expect(putBackup).not.toHaveBeenCalled()
   })
 
   it('rejects a request with the wrong secret before touching the database', async () => {
@@ -45,7 +45,7 @@ describe('GET /api/cron/backup', () => {
     )
     expect(res.status).toBe(401)
     expect(assembleDump).not.toHaveBeenCalled()
-    expect(put).not.toHaveBeenCalled()
+    expect(putBackup).not.toHaveBeenCalled()
   })
 
   it('proceeds when the bearer token matches CRON_SECRET', async () => {
@@ -55,7 +55,7 @@ describe('GET /api/cron/backup', () => {
       sessions: [],
       games: [{ id: 1 }, { id: 2 }],
     })
-    vi.mocked(put).mockResolvedValue({ url: 'https://example.blob.vercel-storage.com/backups/2026-09-07.json' } as never)
+    vi.mocked(putBackup).mockResolvedValue()
 
     const res = await GET(
       new Request('http://localhost/api/cron/backup', {
@@ -65,12 +65,11 @@ describe('GET /api/cron/backup', () => {
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body).toEqual({
-      ok: true,
-      url: 'https://example.blob.vercel-storage.com/backups/2026-09-07.json',
-      games: 2,
-    })
+    const key = `backups/${new Date().toISOString().slice(0, 10)}.json`
+    expect(body).toEqual({ ok: true, key, games: 2 })
     expect(assembleDump).toHaveBeenCalledTimes(1)
-    expect(put).toHaveBeenCalledTimes(1)
+    expect(putBackup).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(putBackup).mock.calls[0][0]).toBe(key)
+    expect(JSON.parse(vi.mocked(putBackup).mock.calls[0][1]).games).toHaveLength(2)
   })
 })

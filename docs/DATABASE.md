@@ -48,6 +48,6 @@ Three columns carry most of the design:
 
 ## Backups
 
-A nightly cron writes `players`, `sessions` and `games` to Vercel Blob as `backups/YYYY-MM-DD.json`.
+A nightly Cron Trigger writes `players`, `sessions` and `games` to the private `shedquarters-backups` Workers KV namespace as `backups/YYYY-MM-DD.json`.
 `ratings_cache` is left out because it's derived.
 Restoring means loading those three tables; the next read rebuilds the ratings.

@@ -59,69 +59,71 @@ CI (`.github/workflows/ci.yml`) runs the same four against a Postgres 17 service
 | `DATABASE_URL` | local + production | Postgres connection string. Locally the container above; in production a **Neon pooled** connection string with `?sslmode=require`. |
 | `HOUSE_PASSCODE` | local + production | The shared house **PIN** (4 digits). Not authentication and not per-person; it exists so the deployment isn't world-writable. Unset fails closed. **Changing it signs out every device.** |
 | `AUTH_SECRET` | local + production | Long random string that signs the session cookie and derives the invite link. Unset fails closed like `HOUSE_PASSCODE`. Generate with `openssl rand -hex 32`; never reuse the local value. Rotating it signs out every device and changes the invite link. |
-| `CRON_SECRET` | production (and locally to test the route) | Bearer token the nightly backup requires. Vercel Cron sends it automatically. Unset makes the route return 500 with no database work, which means silent backup failures rather than an open endpoint. |
-| `BLOB_READ_WRITE_TOKEN` | production | Injected by Vercel once Blob storage is attached. Never generated or pasted by hand. |
+| `CRON_SECRET` | production (and locally to test the route) | Bearer token the nightly backup requires. The Worker's Cron Trigger sends it (`custom-worker.ts`). Unset makes the route return 500 with no database work, which means silent backup failures rather than an open endpoint. |
+| `PROD_DATABASE_URL` | your shell or `.env.deploy`, deploy only | The production connection string `npm run deploy` migrates before shipping. Never read from `.env.local`. |
 
 `.env.example` holds the local defaults. `.env*` is gitignored apart from `.env.example`.
+In production every variable is a **Worker secret** (`npx wrangler secret put NAME`), never a line in `wrangler.jsonc`.
 
 ## Production
 
-Vercel (Hobby) + Neon (Free) + Vercel Blob, all on free tiers: 1M invocations a month, 100 CU-hours, 1 GB of Blob, and one daily cron.
-Served at [die.lukeghanna.com](https://die.lukeghanna.com) through a DNS-only Cloudflare CNAME to Vercel.
+Cloudflare Workers (Free) + Neon (Free) + Workers KV, all on free tiers: 100k requests a day, 100 CU-hours, 1 GB of KV, and one Cron Trigger.
+The Next.js app runs on Workers through the OpenNext adapter (`@opennextjs/cloudflare`); `wrangler.jsonc` is the Worker's config and `custom-worker.ts` its entry.
+The Worker is `house-ladder`, at [house-ladder.lllukehanna.workers.dev](https://house-ladder.lllukehanna.workers.dev). [die.lukeghanna.com](https://die.lukeghanna.com) is attached to it as a Workers custom domain, declared as a `routes` entry (`custom_domain: true`) in `wrangler.jsonc` so every deploy keeps it.
 
 **Raise Neon's scale-to-zero idle timeout from the 5-minute default to 1 hour** (Neon → project → Settings → Compute).
 At the default the database sleeps between games, and a mid-session tap pays up to a 3-second cold start on the party iPad.
 At the 0.25 CU floor, 100 CU-hours is roughly 400 hours of warm compute a month against an expected ~40, so an hour of idle warmth costs nothing that matters.
 
+**CPU.** The Free plan allows 10 ms of CPU per request, with some slack for occasional overruns. A rendered page costs more than that (about 15–40 ms measured), which has not produced an error so far.
+If pages start failing with **Error 1102** ("Worker exceeded resource limits"), the fix is Workers Paid ($5 a month, 30 s of CPU per request), with no code change.
+
 ### First deploy
 
 ```bash
-# 1. Two separate secrets (don't reuse local values, don't use one for both)
-openssl rand -hex 32   # CRON_SECRET
-openssl rand -hex 32   # AUTH_SECRET
+# 1. Secrets. Two separate random values (don't reuse local values, don't use one for both)
+openssl rand -hex 32 | npx wrangler secret put CRON_SECRET
+openssl rand -hex 32 | npx wrangler secret put AUTH_SECRET
+npx wrangler secret put HOUSE_PASSCODE   # prompts; paste the PIN
+npx wrangler secret put DATABASE_URL     # prompts; paste the Neon pooled connection string
+npx wrangler secret list                 # all four must be listed
 
-# 2. Link the project. Decline the offer to create a Postgres: this app uses Neon via DATABASE_URL.
-vercel link
+# 2. The backup store (already created once; the id is in wrangler.jsonc)
+npx wrangler kv namespace create shedquarters-backups
 
-# 3. Production env vars
-vercel env add DATABASE_URL production
-vercel env add HOUSE_PASSCODE production
-vercel env add CRON_SECRET production
-vercel env add AUTH_SECRET production
-vercel env ls production      # all four must be listed before deploying
-
-# 4. Attach Vercel Blob in the dashboard's Storage tab (injects BLOB_READ_WRITE_TOKEN)
-
-# 5. Schema. An inline variable beats .env.local, so this targets Neon.
-DATABASE_URL='<the Neon connection string>' npm run migrate
-
-# 6. Deploy
-vercel --prod
+# 3. Schema, build and deploy
+PROD_DATABASE_URL='<the Neon connection string>' npm run deploy
 ```
 
 Then verify:
 
 - `/` renders the leaderboard.
 - `/table` redirects to `/gate`; the PIN gets you in, and a wrong PIN says so.
-- `curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/backup` returns `{"ok":true,"url":"…","games":N}`.
+- `curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/backup` returns `{"ok":true,"key":"backups/YYYY-MM-DD.json","games":N}`.
 - The same `curl` without the header returns 401.
-- The blob from that URL has every player, session and game, and no `ratings_cache`.
-- `vercel crons ls` lists the backup at `0 9 * * *` (9am UTC, 1–2am in Los Angeles, after a night has ended).
+- `npx wrangler kv key get --binding BACKUPS --remote backups/YYYY-MM-DD.json` has every player, session and game, and no `ratings_cache`.
+- The dashboard (Workers → house-ladder → Settings → Trigger events) lists the cron at `0 9 * * *` (9am UTC, 1–2am in Los Angeles, after a night has ended).
 
 ### Every deploy after that
 
-The Vercel project is connected to the GitHub repo, so **merging to `main` deploys to production**. There's nothing to run by hand.
-Pull request branches don't get preview deployments: `git.deploymentEnabled` in `vercel.ts` turns deployments off for every branch but `main`. A preview has no `DATABASE_URL` and would fail anyway, and CI already builds, typechecks, lints and tests every PR.
-To deploy without merging (a hotfix, or a redeploy), `vercel --prod` from an up-to-date `main` still works.
+```bash
+PROD_DATABASE_URL='<the Neon connection string>' npm run deploy
+```
+
+or put `PROD_DATABASE_URL=...` in a gitignored `.env.deploy` and run `npm run deploy`.
+Deploys are run by hand from an up-to-date `main`; merging does not deploy. CI still builds, typechecks, lints and tests every PR.
+`npx wrangler rollback` puts the previous version back.
 
 ### Schema migrations
 
-Production builds run `npm run migrate` before `next build` (the `buildCommand` in `vercel.ts`), using the production `DATABASE_URL`, which Vercel provides at build time.
+`npm run deploy` (`scripts/deploy.sh`) applies `lib/schema.sql` to the production database before it builds anything, so a deploy never serves code ahead of its schema.
 `lib/schema.sql` is idempotent and only ever adds things, so this is a no-op on a deploy with no schema change, and the version still serving traffic keeps working while the new one builds.
-If the migration fails, the build fails and the previous deployment stays live.
-Preview builds skip it: `DATABASE_URL` is production-only, and a preview must never change the production schema.
+If the migration fails, nothing is built or deployed and the current version stays live.
+The script refuses a localhost `PROD_DATABASE_URL`, and never reads `.env.local`.
 
 To run it by hand anyway: `DATABASE_URL='<the Neon connection string>' npm run migrate`.
+
+**Never deploy with plain `wrangler deploy` or `opennextjs-cloudflare deploy` alone**: OpenNext copies every `.env*` file it finds (`.env.local` included) into the bundle as fallback values, and `scripts/deploy.sh` is what blanks them before upload.
 
 `lib/schema.sql` is split on `;` by `scripts/migrate.ts`, so a comment in it must never contain a semicolon.
 
@@ -176,7 +178,7 @@ Order matters. Changing `HOUSE_PASSCODE` doesn't clear `auth_attempts`, because 
 Rotating it mid-lockout gives the new PIN the same lockout, and nobody, including the iPad, can sign in.
 
 1. Clear the failure history: `delete from auth_attempts where success = false;`
-2. Change `HOUSE_PASSCODE` in Vercel and redeploy.
+2. Change it: `npx wrangler secret put HOUSE_PASSCODE` (a secret change goes live at once, no redeploy).
 3. Sign every device that needs write access back in at `/gate` right away, starting with the scorekeeping iPad.
 4. Whoever has the leaked PIN can re-lock the gate with 20 more wrong guesses. Signing the important devices back in immediately after step 2 is what limits the damage.
 

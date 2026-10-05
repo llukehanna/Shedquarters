@@ -52,7 +52,7 @@ export const BADGE_COPY: Record<BadgeKind, { name: string; blurb: string }> = {
  * The calendar day an instant falls on in Shed time, as a whole number of
  * days that can be subtracted from another. Pinning to `SHED_TIME_ZONE`
  * (rather than UTC or the host's zone) is what makes "21 days ago" mean the
- * same thing on a Vercel box in Virginia as it does on a phone at the table,
+ * same thing on a server in another time zone as it does on a phone at the table,
  * and matches how every other date in the app is rendered.
  */
 function shedDayNumber(iso: string): number {

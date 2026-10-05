@@ -43,10 +43,14 @@ describe('decideGateAttempt', () => {
 describe('clientIpFrom', () => {
   const h = (entries: Record<string, string>) => new Headers(entries)
 
-  it('prefers x-vercel-forwarded-for', () => {
+  it('prefers cf-connecting-ip, which Cloudflare sets and clients cannot', () => {
     expect(
-      clientIpFrom(h({ 'x-vercel-forwarded-for': '1.1.1.1', 'x-real-ip': '2.2.2.2', 'x-forwarded-for': '3.3.3.3' })),
+      clientIpFrom(h({ 'cf-connecting-ip': '1.1.1.1', 'x-real-ip': '2.2.2.2', 'x-forwarded-for': '3.3.3.3' })),
     ).toBe('1.1.1.1')
+  })
+
+  it('ignores a client-supplied x-vercel-forwarded-for', () => {
+    expect(clientIpFrom(h({ 'x-vercel-forwarded-for': '9.9.9.9', 'cf-connecting-ip': '1.1.1.1' }))).toBe('1.1.1.1')
   })
 
   it('falls back to x-real-ip, then the first x-forwarded-for entry', () => {
