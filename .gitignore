@@ -34,8 +34,13 @@ yarn-error.log*
 .env*
 !.env.example
 
-# vercel
+# vercel (no longer deployed there; kept so an old link never gets committed)
 .vercel
+
+# cloudflare (OpenNext build output, wrangler's local state and local secrets)
+/.open-next/
+/.wrangler/
+.dev.vars*
 
 # typescript
 *.tsbuildinfo

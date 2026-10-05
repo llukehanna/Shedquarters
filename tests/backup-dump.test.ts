@@ -9,9 +9,8 @@ import { assertLocalDatabase } from '@/lib/db-guard'
 assertLocalDatabase()
 
 // Exercises the dump assembly against the real local database (seeded here),
-// since @vercel/blob's put() needs BLOB_READ_WRITE_TOKEN, which doesn't
-// exist outside of a linked Vercel project. This is the part of the backup
-// route that CAN be verified without a Vercel account.
+// since the KV write needs the Worker's BACKUPS binding. This is the part of
+// the backup route that CAN be verified without Cloudflare.
 describe('assembleDump', () => {
   const tag = `backup-test-${crypto.randomUUID()}`
   const names = [`${tag}-a`, `${tag}-b`]

@@ -13,9 +13,8 @@ export type BackupDump = {
  * and a replay rebuilds it, so it would only bloat the dump.
  *
  * Split out from the cron route so the assembly (querying + shaping JSON)
- * can be exercised against a real local database without needing
- * BLOB_READ_WRITE_TOKEN, which only exists once the project is linked to
- * Vercel Blob.
+ * can be exercised against a real local database without the Worker's KV
+ * binding (lib/backup-store.ts).
  */
 export async function assembleDump(): Promise<BackupDump> {
   const [players, sessions, games] = await Promise.all([
