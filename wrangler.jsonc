@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "house-ladder",
+  "routes": [
+    { "pattern": "die.lukeghanna.com", "custom_domain": true }
+  ],
   "account_id": "0086bd2cb9895f573c0ce63c3012104e",
   // The OpenNext worker, wrapped to add the nightly backup's Cron Trigger.
   "main": "custom-worker.ts",
