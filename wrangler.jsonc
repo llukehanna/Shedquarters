@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "house-ladder",
+  "account_id": "0086bd2cb9895f573c0ce63c3012104e",
+  // The OpenNext worker, wrapped to add the nightly backup's Cron Trigger.
+  "main": "custom-worker.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    // Serve /offline.html as itself. The default would 307 it to /offline,
+    // and the service worker caches and serves it by that exact name.
+    "html_handling": "none"
+  },
+  // Served at house-ladder.<account>.workers.dev until DNS moves over; the
+  // custom domain is added as a `routes` entry at cutover.
+  "workers_dev": true,
+  "preview_urls": false,
+  // Nightly backup, 09:00 UTC (1–2am in Los Angeles, after a night has
+  // ended). custom-worker.ts's `scheduled` handler runs it.
+  "triggers": { "crons": ["0 9 * * *"] },
+  // Private store for the nightly JSON dumps (lib/backup-store.ts). KV, not
+  // R2: R2 has to be enabled (with a payment method) in the dashboard first,
+  // and a dump a day is far inside KV's free tier (1 GB, 1,000 writes a day).
+  "kv_namespaces": [
+    { "binding": "BACKUPS", "id": "25eb8c47d0814f84bb5d976b0db25832" }
+  ],
+  "observability": { "enabled": true }
+  // Secrets (wrangler secret put): DATABASE_URL, HOUSE_PASSCODE, AUTH_SECRET,
+  // CRON_SECRET. Never in this file.
+}

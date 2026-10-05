@@ -12,12 +12,16 @@
     "lint": "eslint",
     "test": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest run",
     "migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
-    "smoke": "tsx --env-file-if-exists=.env.local scripts/smoke-session.ts"
+    "smoke": "tsx --env-file-if-exists=.env.local scripts/smoke-session.ts",
+    "cf:build": "opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "bash scripts/deploy.sh",
+    "cf-typegen": "wrangler types cloudflare-env.d.ts --env-interface CloudflareEnv --env-file=/dev/null"
   },
   "dependencies": {
-    "@vercel/blob": "^2.8.0",
+    "@opennextjs/cloudflare": "1.20.8",
     "motion": "^13.4.0",
-    "next": "16.3.4",
+    "next": "16.3.8",
     "openskill": "^5.0.1",
     "postgres": "^3.4.9",
     "react": "19.2.8",
@@ -31,13 +35,13 @@
     "@types/node": "^24.13.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vercel/config": "^0.7.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.4",
+    "eslint-config-next": "16.3.8",
     "jsdom": "^30.1.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "^5",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.0",
+    "wrangler": "^4.147.0"
   }
 }
