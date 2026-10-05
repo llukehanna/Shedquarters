@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // OpenNext build output and wrangler's generated types.
+    ".open-next/**",
+    ".wrangler/**",
+    "cloudflare-env.d.ts",
     // Agent worktrees: full copies of the repo, linted in their own checkout.
     ".claude/**",
   ]),

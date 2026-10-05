@@ -70,7 +70,7 @@ On a laptop the tab bar becomes a floating glass rail and the screens spread int
 - **Postgres** via `postgres.js`: Neon in production, Docker locally
 - **OpenSkill** (Plackett–Luce) for ratings
 - **Tailwind CSS 4**, **Motion** for animation
-- **Vercel**: Fluid Compute, a nightly Cron backup to Vercel Blob
+- **Cloudflare Workers** through OpenNext, a nightly Cron Trigger backup to Workers KV
 - **Vitest**: 694 tests, most of them against a real Postgres, plus jsdom component tests; GitHub Actions CI
 
 ## Running locally

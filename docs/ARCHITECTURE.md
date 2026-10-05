@@ -5,7 +5,7 @@ Every page renders on the server from live data (`dynamic = 'force-dynamic'`).
 Almost everything the pages show is derived from one append-only table of games.
 
 ```
-Phone (any device)                           Vercel (Fluid Compute)                 Neon Postgres
+Phone (any device)                           Cloudflare Workers (OpenNext)          Neon Postgres
 ├── Rankings, player, log, h2h  ── GET ──►   server components ── queries ──►       players
 │                                             └── getRatings() ── fingerprint ──►    games  (append-only)
 ├── Table mode                                                                       sessions (table state)
@@ -14,7 +14,7 @@ Phone (any device)                           Vercel (Fluid Compute)             
 ├── /gate (PIN keypad) ──── server action ─► attemptGate (rate limited, locked)      player_claims
 └── /join/<token> ───────── GET ───────────► enterWithInvite                         house_settings
 
-Vercel Cron, 09:00 UTC ── GET /api/cron/backup (Bearer CRON_SECRET) ──► JSON dump → Vercel Blob
+Cron Trigger, 09:00 UTC ── GET /api/cron/backup (Bearer CRON_SECRET) ──► JSON dump → Workers KV
 ```
 
 ## Layers
@@ -53,7 +53,7 @@ Component tests do exist (`tests/*.test.tsx`, jsdom via a `// @vitest-environmen
 | `/join/[token]` | public | The invite link: signs the phone in without the PIN |
 | `/who` | signed in | "Who are you?": binds this phone to a player |
 | `POST /api/games` | signed in | The only way a game is written |
-| `GET /api/cron/backup` | `CRON_SECRET` | Nightly dump to Vercel Blob |
+| `GET /api/cron/backup` | `CRON_SECRET` | Nightly dump to Workers KV |
 
 A signed-out request to a signed-in page redirects to `/gate`, never to an error page.
 
@@ -124,6 +124,7 @@ It registers in production builds only.
 
 ## Backups
 
-Vercel Cron calls `/api/cron/backup` daily at 09:00 UTC, after a night has ended in Los Angeles.
+A Workers Cron Trigger runs daily at 09:00 UTC, after a night has ended in Los Angeles. The Worker's `scheduled` handler (`custom-worker.ts`) hands a request for `/api/cron/backup`, bearing `CRON_SECRET`, straight to its own `fetch` handler, so the nightly run is exactly the code an HTTP call runs.
+The dump goes to the private `shedquarters-backups` KV namespace as `backups/YYYY-MM-DD.json` (a second run the same day overwrites it).
 The route compares the bearer token in constant time before touching the database, and returns 500 with no database work if `CRON_SECRET` is unset.
 The dump holds `players`, `sessions` and `games`. It leaves out `ratings_cache`, which is derived, and a replay rebuilds it.

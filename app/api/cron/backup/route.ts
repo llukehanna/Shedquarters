@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { assembleDump } from '@/lib/backup'
 import { safeEqual } from '@/lib/auth'
+import { putBackup } from '@/lib/backup-store'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +15,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 
-  // Vercel sends this header automatically on scheduled cron invocations;
-  // checking it first — before any database work — is what stops anyone
+  // The Worker's Cron Trigger (custom-worker.ts) sends this header on the
+  // nightly run; checking it first — before any database work — is what stops anyone
   // on the internet from hammering this endpoint or forcing needless
   // queries against the database. Compared in constant time via the same
   // helper lib/auth.ts uses for the house passcode.
@@ -27,11 +27,9 @@ export async function GET(req: Request) {
 
   const dump = await assembleDump()
   const stamp = new Date().toISOString().slice(0, 10)
-  const blob = await put(`backups/${stamp}.json`, JSON.stringify(dump, null, 2), {
-    access: 'public',
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  })
+  // One object per day; a second run the same day overwrites it.
+  const key = `backups/${stamp}.json`
+  await putBackup(key, JSON.stringify(dump, null, 2))
 
-  return NextResponse.json({ ok: true, url: blob.url, games: dump.games.length })
+  return NextResponse.json({ ok: true, key, games: dump.games.length })
 }

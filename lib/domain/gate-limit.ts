@@ -62,18 +62,20 @@ export type GateStatus = 'ok' | 'wrong' | 'locked-ip' | 'locked-global' | 'misco
 export const UNKNOWN_IP = 'unknown'
 
 /**
- * The client IP as Vercel reports it. Vercel overwrites `x-forwarded-for`
- * with the real client address and does not forward client-supplied values,
- * to prevent spoofing; `x-vercel-forwarded-for` and `x-real-ip` carry the
- * same value, and `x-vercel-forwarded-for` survives a proxy in front of
- * Vercel. Off Vercel (e.g. `next dev`) these headers are client-controlled,
- * which only affects the per-IP limit — the global limit does not use the IP.
+ * The client IP as Cloudflare reports it. Cloudflare sets `cf-connecting-ip`
+ * to the real client address on every request that reaches the Worker and
+ * overwrites any client-supplied value, so it is read first. The others are
+ * fallbacks for running off Cloudflare (e.g. `next dev`), where they are
+ * client-controlled; that only affects the per-IP limit, since the global
+ * limit does not use the IP. (`x-forwarded-for` behind Cloudflare keeps
+ * whatever the client sent first, so it must never win over
+ * `cf-connecting-ip`.)
  *
  * An unreadable IP falls into one shared UNKNOWN_IP bucket rather than
  * skipping the per-IP limit.
  */
 export function clientIpFrom(headers: { get(name: string): string | null }): string {
-  for (const name of ['x-vercel-forwarded-for', 'x-real-ip', 'x-forwarded-for']) {
+  for (const name of ['cf-connecting-ip', 'x-real-ip', 'x-forwarded-for']) {
     const first = headers.get(name)?.split(',')[0]?.trim()
     if (first) return first.slice(0, 64)
   }

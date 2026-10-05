@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Left unbundled so the Cloudflare build (OpenNext) can swap in postgres.js's
+  // `workerd` build, which talks to Postgres over Workers sockets.
+  serverExternalPackages: ["postgres"],
   experimental: {
     // Keep pages in the phone's page cache so switching tabs doesn't wait on
     // the server. `static` covers the full prefetches of the tab bar's links
@@ -13,6 +16,7 @@ const nextConfig: NextConfig = {
     return [
       {
         // The service worker must never be served stale, or fixes to it would never reach installed phones.
+        // On Cloudflare, static files skip this config: public/_headers carries the same headers there.
         source: "/sw.js",
         headers: [
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },
