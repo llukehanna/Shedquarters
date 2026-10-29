@@ -32,6 +32,29 @@
   "kv_namespaces": [
     { "binding": "BACKUPS", "id": "25eb8c47d0814f84bb5d976b0db25832" }
   ],
+  // Hyperdrive: pooled, pre-authenticated connections to Neon, so a request
+  // no longer pays a TLS handshake and SCRAM auth inside the Worker
+  // (lib/db.ts uses it when the binding exists, DATABASE_URL otherwise).
+  // Not created yet. To turn it on, create it once (docs/OPERATIONS.md), then
+  // uncomment this block with the id that prints:
+  //
+  //   npx wrangler hyperdrive create house-ladder-db --caching-disabled \
+  //     --connection-string='<Neon DIRECT connection string, not -pooler>'
+  //
+  // QUERY CACHING MUST STAY OFF (--caching-disabled). It is on by default and
+  // serves plain SELECTs up to a minute stale; this app reads its own writes
+  // (the table after a game, the ladder after a void), so a cached read is a
+  // wrong screen. Check with `npx wrangler hyperdrive get <id>`.
+  // localConnectionString is what `wrangler dev` and the OpenNext deploy step
+  // use in its place: the local Docker database, not a secret.
+  //
+  // "hyperdrive": [
+  //   {
+  //     "binding": "HYPERDRIVE",
+  //     "id": "<id from hyperdrive create>",
+  //     "localConnectionString": "postgresql://houseladder:houseladder@localhost:55432/houseladder"
+  //   }
+  // ],
   "observability": { "enabled": true }
   // Secrets (wrangler secret put): DATABASE_URL, HOUSE_PASSCODE, AUTH_SECRET,
   // CRON_SECRET. Never in this file.

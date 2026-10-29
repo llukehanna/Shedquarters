@@ -28,13 +28,26 @@ function databaseUrl(): string {
 function client(): Sql {
   if (!onWorkers) return (shared ??= postgres(databaseUrl()))
 
-  const { ctx } = getCloudflareContext()
+  const { ctx, env } = getCloudflareContext()
   let sql = perRequest.get(ctx)
   if (!sql) {
-    // One connection per request: every connection to Postgres costs a TLS
-    // handshake and an auth round trip, which count against the Worker's CPU
-    // budget, and a request's queries are few. postgres.js queues the rest.
-    sql = postgres(databaseUrl(), { max: 1 })
+    // Through Hyperdrive when the binding is there (wrangler.jsonc). Opened
+    // directly, every request pays a TLS handshake and a SCRAM password
+    // exchange with Neon inside the Worker, CPU against the Free plan's 10 ms,
+    // plus several round trips across the country before the first query.
+    // Hyperdrive keeps warm, authenticated connections to Neon and hands the
+    // Worker a local, unencrypted one, so both costs leave the request.
+    // Without the binding (before it is created, or in a preview) it is
+    // DATABASE_URL, exactly as before.
+    //
+    // fetch_types stays on (the default): postgres.js needs the array type
+    // catalogue to parse uuid[] columns (holders, team_a, ...) into arrays and
+    // to send JS arrays as Postgres arrays. Without it they arrive as '{...}'
+    // strings.
+    const hyperdrive = (env as { HYPERDRIVE?: { connectionString: string } }).HYPERDRIVE
+    // One connection per request: a request's queries are few, and
+    // postgres.js queues the rest.
+    sql = postgres(hyperdrive?.connectionString ?? databaseUrl(), { max: 1 })
     perRequest.set(ctx, sql)
   }
   return sql
