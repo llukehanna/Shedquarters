@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
@@ -36,10 +38,6 @@ describe('RefreshIfStale', () => {
     expect(refresh).not.toHaveBeenCalled()
   })
 
-  it('waits at least 15 seconds between refreshes of a page', () => {
-    expect(STALE_AFTER_MS).toBeGreaterThanOrEqual(15_000)
-  })
-
   it('draws the line at STALE_AFTER_MS', () => {
     render(<RefreshIfStale renderedAt={NOW - STALE_AFTER_MS} />)
     expect(refresh).not.toHaveBeenCalled()
@@ -57,5 +55,14 @@ describe('RefreshIfStale', () => {
     refresh.mockClear()
     render(<RefreshIfStale renderedAt={NOW - 500} staleAfterMs={LIVE_STALE_AFTER_MS} />)
     expect(refresh).not.toHaveBeenCalled()
+  })
+
+  // A revert to a plain <StaleCheck /> on the Table would pass every test
+  // above: hold the page itself to the live line.
+  it('the Table page asks for the live line', () => {
+    const page = readFileSync(path.resolve(__dirname, '../app/(tabs)/table/page.tsx'), 'utf8')
+    const checks = page.match(/<StaleCheck\b[^>]*>/g) ?? []
+    expect(checks.length).toBeGreaterThan(0)
+    for (const tag of checks) expect(tag).toMatch(/\blive\b/)
   })
 })

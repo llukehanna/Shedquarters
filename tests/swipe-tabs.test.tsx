@@ -98,7 +98,8 @@ describe('SwipeTabs', () => {
     fireEvent.touchMove(el, { touches: [{ clientX: 180, clientY: 302 }] })
     fireEvent.touchMove(el, { touches: [{ clientX: 120, clientY: 304 }] })
     expect(nav.prefetch).toHaveBeenCalledTimes(1)
-    expect(nav.prefetch).toHaveBeenCalledWith('/roster')
+    // In full, so the page is fetched during the drag, not after release.
+    expect(nav.prefetch).toHaveBeenCalledWith('/roster', { kind: 'full' })
     expect(nav.push).not.toHaveBeenCalled()
   })
 

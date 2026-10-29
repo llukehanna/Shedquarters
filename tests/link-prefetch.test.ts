@@ -40,7 +40,7 @@ function linkTags(source: string): string[] {
 
 describe('links do not prefetch', () => {
   const files = [...sources(path.join(ROOT, 'app')), ...sources(path.join(ROOT, 'components'))].filter((f) =>
-    readFileSync(f, 'utf8').includes("from 'next/link'"),
+    /from ['"]next\/link['"]/.test(readFileSync(f, 'utf8')),
   )
 
   it('finds the links', () => {

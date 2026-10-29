@@ -1,5 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
-import { sql } from '@/lib/db'
+import { directSql } from '@/lib/db'
 import {
   ATTEMPT_RETENTION_MS,
   GLOBAL_WINDOW_MS,
@@ -76,7 +76,9 @@ export async function attemptGate(pin: string, ip: string): Promise<GateStatus> 
   // it errors. So this catches the whole `sql.begin` instead — by the time
   // it rejects, postgres.js has already issued the matching `rollback`.
   try {
-    return await sql.begin(async (tx) => {
+    // directSql, never Hyperdrive: Hyperdrive does not support advisory
+    // locks, and this transaction takes one (lib/db.ts).
+    return await directSql.begin(async (tx) => {
       // A literal, not a bound parameter: SET does not accept placeholders,
       // and LOCK_TIMEOUT is a hardcoded constant, never user input.
       await tx.unsafe(`set local lock_timeout = '${LOCK_TIMEOUT}'`)

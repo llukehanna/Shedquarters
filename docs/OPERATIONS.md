@@ -97,7 +97,17 @@ npx wrangler hyperdrive create house-ladder-db --caching-disabled \
 
 - Use Neon's **direct** connection string (host without `-pooler`): Hyperdrive is the pool.
 - `--caching-disabled` is not optional. Caching is on by default and serves plain `SELECT`s up to a minute stale; this app reads its own writes (the table right after a game is logged), so a cached read shows the wrong table. `npx wrangler hyperdrive get <id>` shows the setting.
-- Then uncomment the `hyperdrive` block in `wrangler.jsonc`, paste the printed id, and deploy as usual. `DATABASE_URL` stays set: migrations and the fallback use it.
+- Then uncomment the `hyperdrive` block in `wrangler.jsonc`, paste the printed id, and deploy as usual. `DATABASE_URL` stays set: migrations, the fallback and the PIN gate use it.
+- **The PIN gate never goes through Hyperdrive.** Its transaction takes `pg_advisory_xact_lock`, and Hyperdrive lists advisory locks as unsupported, so `lib/gate.ts` uses `directSql` (`lib/db.ts`), always `DATABASE_URL`. Anything new that takes an advisory lock must do the same; `tests/db-route.test.ts` pins the gate.
+
+**Required check right after the first deploy with Hyperdrive on.** The interactive transactions (`logGame`, `voidLastGame`) and the `uuid[]` round trips were only tested under `wrangler dev`, which connects straight to the local database and bypasses Hyperdrive's pooling. On production, before a game night:
+
+1. Sign in at `/gate` with the PIN on a fresh browser (the gate's own direct connection).
+2. Start a night on `/table`, log a game, and check the table moved on (new holders, game 1 on the game log).
+3. Undo it (↶ Undo last game) and check the table is back where it was, then end the night.
+
+If any step fails, comment the `hyperdrive` block out again and redeploy: everything falls back to `DATABASE_URL`.
+A day or two later, check in Neon that the compute still suspends when idle. Hyperdrive holds a small pool of connections to the origin; if that kept the compute awake around the clock it would cost ~180 CU-hours a month, more than the free 100.
 
 ### First deploy
 

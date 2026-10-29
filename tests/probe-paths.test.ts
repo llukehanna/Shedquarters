@@ -25,6 +25,12 @@ const REAL = [
   '/who',
   '/join/Zm9vYmFyLWJhei1xdXV4X3Rva2VuLXZhbHVl',
   '/join/abc-_DEF123',
+  // Invite tokens are base64url, so one can start with any letters, including
+  // the WordPress prefix in any case. A probe rule matching one would kill the
+  // house's invite link until it was reset.
+  '/join/wp-xyz',
+  '/join/wP-4f1aQe9-_Zx0Vb7LmN2oPq3RsT5uVw6XyZ8aBcDeF',
+  '/join/WP-4f1aQe9-_Zx0Vb7LmN2oPq3RsT5uVw6XyZ8aBcDeF',
   '/api/games',
   '/api/cron/backup',
   '/_next/static/chunks/app/page-0123abcd.js',
@@ -50,6 +56,8 @@ const REAL = [
 ]
 
 const PROBES = [
+  '/wp-anything',
+  '/WP-Login.php',
   '/.env',
   '/.env.local',
   '/.env.production',

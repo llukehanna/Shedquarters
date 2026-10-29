@@ -12,7 +12,8 @@
  *
  * The one hard rule: never catch a path the app serves. It is a blocklist of
  * shapes no route of this app has (a dot-segment, a server-side script or
- * secret file extension, a WordPress or phpMyAdmin directory), not an
+ * secret file extension, a WordPress or phpMyAdmin directory), anchored so a
+ * dynamic segment (an invite token, a player id) can never match, not an
  * allowlist of routes, so a new route needs no change here.
  * tests/probe-paths.test.ts lists the app's routes and files and holds every
  * one of them to passing through.
@@ -32,8 +33,16 @@ const PROBE_EXTENSIONS = new Set([
   'zip', 'tar', 'gz', 'tgz', 'bz2', 'rar', '7z',
 ])
 
-/** Directory names of software this app is not, at any depth. */
-const PROBE_SEGMENTS = new Set(['wordpress', 'cgi-bin', 'phpmyadmin'])
+/**
+ * Whole path segments of software this app is not, at any depth. Exact names
+ * only: a dynamic segment of this app (an invite token under /join/, a player
+ * id) is base64url or a uuid, and could start with any of these but never be
+ * one.
+ */
+const PROBE_SEGMENTS = new Set([
+  'wordpress', 'cgi-bin', 'phpmyadmin',
+  'wp-admin', 'wp-content', 'wp-includes', 'wp-json', 'wp-login.php', 'wp-config.php', 'wp-cron.php',
+])
 
 /** Whether `pathname` (a URL's pathname, no query) is a scanner's probe rather than anything the app serves. */
 export function isProbePath(pathname: string): boolean {
@@ -49,10 +58,16 @@ export function isProbePath(pathname: string): boolean {
   if (path.startsWith('/_next/') || path.startsWith('/.well-known/')) return false
 
   const segments = path.split('/').filter((segment) => segment !== '')
+  // Any other `wp-` name, but only as the first segment, where this app's
+  // routes are fixed words. Deeper down it could be the start of an invite
+  // token (/join/wP-...), which is base64url and judged lowercased here.
+  if (segments[0]?.startsWith('wp-')) return true
+
   for (const segment of segments) {
     // A dotfile or dot-directory: /.env, /.git/config, /gitlab/.env, /.aws/credentials.
+    // (Never a token or an id: neither has a dot.)
     if (segment.startsWith('.')) return true
-    if (segment.startsWith('wp-') || PROBE_SEGMENTS.has(segment)) return true
+    if (PROBE_SEGMENTS.has(segment)) return true
   }
 
   const last = segments.at(-1) ?? ''

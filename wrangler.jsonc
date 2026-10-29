@@ -45,8 +45,12 @@
   // serves plain SELECTs up to a minute stale; this app reads its own writes
   // (the table after a game, the ladder after a void), so a cached read is a
   // wrong screen. Check with `npx wrangler hyperdrive get <id>`.
-  // localConnectionString is what `wrangler dev` and the OpenNext deploy step
-  // use in its place: the local Docker database, not a secret.
+  // The PIN gate never uses it: its transaction takes an advisory lock, which
+  // Hyperdrive doesn't support, so lib/gate.ts uses lib/db.ts's directSql.
+  // After enabling, run the production check in docs/OPERATIONS.md.
+  // localConnectionString is what `wrangler dev` / `opennextjs-cloudflare
+  // preview` use in its place (the local Docker database from
+  // docs/OPERATIONS.md, not a secret; change the port if yours differs).
   //
   // "hyperdrive": [
   //   {

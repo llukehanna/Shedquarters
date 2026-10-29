@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import type { PrefetchOptions } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import { SWIPE, classifySwipe, swipeTarget, type SwipeDirection } from '@/lib/ui/swipe'
 import { DESKTOP_QUERY, matches } from '@/lib/ui/media'
 
@@ -23,6 +24,12 @@ const SNAP_BACK = 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)'
 
 /** If the next page still hasn't rendered by then, show whatever is there (the navigation failed) rather than a blank screen. */
 const NAV_TIMEOUT_MS = 2500
+
+/**
+ * `PrefetchKind.FULL`. The enum lives in Next's internals, so the value is
+ * spelled out and only its type is imported.
+ */
+const FULL_PREFETCH = { kind: 'full' as PrefetchOptions['kind'] }
 
 /** Touches here, or anything inside them, are never a tab swipe. */
 const NO_SWIPE = '[data-no-swipe], input, textarea, select, [role="dialog"]'
@@ -103,9 +110,18 @@ export function SwipeTabs({ children, className }: { children: React.ReactNode; 
       // sideways, so the swipe usually lands on a rendered page. Not on
       // arrival: warming both neighbours of every page was two Worker
       // invocations per page view, nearly all of them never used.
+      //
+      // The whole page (`full`), not the default. Either way Next asks for
+      // the route tree first (one request) and then the page (one more), so a
+      // completed swipe costs two Worker invocations to a tap's one. With the
+      // default the page request only went out on release; `full` sends it
+      // now, so the page is usually there when the finger lifts, for the same
+      // two. A drag that's abandoned wastes both. Measured under wrangler dev
+      // (Next 16.3): no prefetch here at all would make a swipe one
+      // invocation, at the cost of a blank beat before the new tab appears.
       if (toward && !warmed.has(toward)) {
         warmed.add(toward)
-        router.prefetch(toward)
+        router.prefetch(toward, FULL_PREFETCH)
       }
       if (!animated) return
       const hasTarget = toward !== null
