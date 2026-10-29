@@ -69,7 +69,8 @@ In production every variable is a **Worker secret** (`npx wrangler secret put NA
 
 Cloudflare Workers (Free) + Neon (Free) + Workers KV, all on free tiers: 100k requests a day, 100 CU-hours, 1 GB of KV, and one Cron Trigger.
 The Next.js app runs on Workers through the OpenNext adapter (`@opennextjs/cloudflare`); `wrangler.jsonc` is the Worker's config and `custom-worker.ts` its entry.
-The Worker is `house-ladder`, at [house-ladder.lllukehanna.workers.dev](https://house-ladder.lllukehanna.workers.dev). [die.lukeghanna.com](https://die.lukeghanna.com) is attached to it as a Workers custom domain, declared as a `routes` entry (`custom_domain: true`) in `wrangler.jsonc` so every deploy keeps it.
+The Worker is `house-ladder`, served only at [die.lukeghanna.com](https://die.lukeghanna.com), attached as a Workers custom domain and declared as a `routes` entry (`custom_domain: true`) in `wrangler.jsonc` so every deploy keeps it.
+Its `workers.dev` URL is turned off (`"workers_dev": false`): traffic there skipped the zone, so no WAF or rate-limiting rule could ever stop it, and an hour of it on 2026-10-26 caused ~800 CPU-limit errors. Don't turn it back on.
 
 **Raise Neon's scale-to-zero idle timeout from the 5-minute default to 1 hour** (Neon → project → Settings → Compute).
 At the default the database sleeps between games, and a mid-session tap pays up to a 3-second cold start on the party iPad.

@@ -16,9 +16,12 @@
     // and the service worker caches and serves it by that exact name.
     "html_handling": "none"
   },
-  // Served at house-ladder.<account>.workers.dev until DNS moves over; the
-  // custom domain is added as a `routes` entry at cutover.
-  "workers_dev": true,
+  // die.lukeghanna.com is the only front door. The workers.dev URL is off:
+  // it bypassed the zone (no WAF or rate limiting possible there), and on
+  // 2026-10-26 an hour of outside traffic through it drove ~800 Error 1102s
+  // (CPU limit). Nothing depends on it: the cron calls the Worker in-process
+  // (custom-worker.ts) and scripts/smoke-prod.ts targets the custom domain.
+  "workers_dev": false,
   "preview_urls": false,
   // Nightly backup, 09:00 UTC (1–2am in Los Angeles, after a night has
   // ended). custom-worker.ts's `scheduled` handler runs it.
