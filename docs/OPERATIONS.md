@@ -76,8 +76,28 @@ Its `workers.dev` URL is turned off (`"workers_dev": false`): traffic there skip
 At the default the database sleeps between games, and a mid-session tap pays up to a 3-second cold start on the party iPad.
 At the 0.25 CU floor, 100 CU-hours is roughly 400 hours of warm compute a month against an expected ~40, so an hour of idle warmth costs nothing that matters.
 
-**CPU.** The Free plan allows 10 ms of CPU per request, with some slack for occasional overruns. A rendered page costs more than that (about 15–40 ms measured), which has not produced an error so far.
-If pages start failing with **Error 1102** ("Worker exceeded resource limits"), the fix is Workers Paid ($5 a month, 30 s of CPU per request), with no code change.
+**CPU.** The Free plan allows 10 ms of CPU per request, with some slack for occasional overruns. A warm rendered page sits close to that, a cold isolate well past it, and in October 2026 that showed up as ~880 **Error 1102**s ("Worker exceeded resource limits") in two weeks, almost all from one hour of outside traffic through the workers.dev URL.
+What keeps it down:
+
+- **One front door.** `workers_dev` is off (above).
+- **Scanner probes never reach Next.** `custom-worker.ts` answers `/.env`, `/.git/…`, `*.php`, `/wp-…` and the like with a bare 404 (`lib/probe-paths.ts`).
+- **No prefetch fan-out.** Links don't prefetch (`prefetch={false}`), because every prefetch of a dynamic page is a full Worker invocation; opening the app used to cost ~18 of them. A swipe warms the tab it's heading to once the drag is clearly sideways. `RefreshIfStale` refreshes a page shown from the phone's cache only when it's more than 30 seconds old (the Table, shared by every phone at a night, still after 3). `tests/link-prefetch.test.ts` holds every `<Link>` to `prefetch={false}`.
+- **Hyperdrive** for the database, once it's created (below): no TLS handshake or password exchange inside the Worker on every request.
+
+If 1102s keep coming anyway, Workers Paid ($5 a month, 30 s of CPU per request) ends them with no code change.
+
+### Hyperdrive
+
+`lib/db.ts` connects through the `HYPERDRIVE` binding when `wrangler.jsonc` declares one, and straight to `DATABASE_URL` when it doesn't. To create it (once; Free plan includes Hyperdrive):
+
+```bash
+npx wrangler hyperdrive create house-ladder-db --caching-disabled \
+  --connection-string='<the Neon DIRECT connection string>'
+```
+
+- Use Neon's **direct** connection string (host without `-pooler`): Hyperdrive is the pool.
+- `--caching-disabled` is not optional. Caching is on by default and serves plain `SELECT`s up to a minute stale; this app reads its own writes (the table right after a game is logged), so a cached read shows the wrong table. `npx wrangler hyperdrive get <id>` shows the setting.
+- Then uncomment the `hyperdrive` block in `wrangler.jsonc`, paste the printed id, and deploy as usual. `DATABASE_URL` stays set: migrations and the fallback use it.
 
 ### First deploy
 

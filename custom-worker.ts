@@ -1,7 +1,10 @@
 /**
  * The Worker entry: OpenNext's generated worker, plus the nightly backup.
  *
- * `fetch` is OpenNext's, unchanged. `scheduled` is the Cron Trigger in
+ * `fetch` is OpenNext's, behind one filter: a scanner's probe (/.env,
+ * /.git/config, /wp-login.php, ...) gets a bare 404 without reaching Next,
+ * since rendering Next's 404 for a sweep of those costs CPU the Free plan
+ * doesn't have (lib/probe-paths.ts). `scheduled` is the Cron Trigger in
  * wrangler.jsonc. It runs the backup by calling /api/cron/backup through the
  * same `fetch`, bearing CRON_SECRET, so the route's auth check, its database
  * access and its KV write are the exact code an HTTP call would run. Nothing
@@ -13,6 +16,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { default as handler } from './.open-next/worker.js'
+import { isProbePath } from './lib/probe-paths'
 
 type Handler = {
   fetch(request: Request, env: CloudflareEnv, ctx: ExecutionContext): Promise<Response>
@@ -20,7 +24,15 @@ type Handler = {
 const openNext = handler as Handler
 
 export default {
-  fetch: openNext.fetch,
+  async fetch(request, env, ctx) {
+    if (isProbePath(new URL(request.url).pathname)) {
+      return new Response('Not found\n', {
+        status: 404,
+        headers: { 'content-type': 'text/plain; charset=utf-8', 'x-robots-tag': 'noindex' },
+      })
+    }
+    return openNext.fetch(request, env, ctx)
+  },
 
   async scheduled(controller, env, ctx) {
     const secret = (env as CloudflareEnv & { CRON_SECRET?: string }).CRON_SECRET
