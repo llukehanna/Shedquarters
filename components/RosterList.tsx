@@ -11,7 +11,7 @@ export function RosterList({ players }: { players: Player[] }) {
     <ul className="surface mt-4 rounded-2xl px-3">
       {players.map((p) => (
         <li key={p.id} className="border-b border-accent/8 last:border-b-0">
-          <Link href={`/players/${p.id}`} className="flex min-h-11 items-center gap-3 py-1">
+          <Link prefetch={false} href={`/players/${p.id}`} className="flex min-h-11 items-center gap-3 py-1">
             <span className="flex-1">
               <span className="block font-display text-[17px] font-bold uppercase">{p.displayName}</span>
               {p.nicknames.length > 0 && (

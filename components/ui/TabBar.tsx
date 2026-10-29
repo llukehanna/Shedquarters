@@ -33,9 +33,12 @@ export function TabBar() {
             <li key={tab.key} className="flex-1">
               <Link
                 href={tab.href}
-                // The whole page, not just its loading skeleton, fetched as
-                // soon as the bar is on screen, so a tab switch never waits.
-                prefetch={true}
+                // No prefetch: every prefetch of a dynamic page is a whole
+                // Worker invocation, and prefetching the bar's tabs (plus the
+                // links on the page) cost ~18 of them per app open, against
+                // the Free plan's CPU limit. A tab loads when it's tapped,
+                // behind its loading skeleton.
+                prefetch={false}
                 aria-current={on ? 'page' : undefined}
                 className={`relative flex h-full items-center justify-center rounded-full font-display text-[12.5px] font-bold uppercase tracking-[0.12em] transition-colors duration-150 ease-(--ease) ${on ? 'text-accent' : 'text-faint active:text-fg'}`}
               >

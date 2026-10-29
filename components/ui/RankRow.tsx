@@ -33,6 +33,7 @@ export function RankRow({
 }) {
   return (
     <Link
+      prefetch={false}
       href={href}
       className={`group/row relative isolate mb-[5px] flex min-h-12 items-center overflow-hidden rounded-[7px] pr-3 transition-[translate,opacity,background,border-color,box-shadow] duration-250 ease-(--ease) active:duration-150 lg:group-hover/ranks:opacity-55 lg:hover:-translate-y-0.5 lg:hover:opacity-100 ${
         first

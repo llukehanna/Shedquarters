@@ -42,6 +42,7 @@ export default async function Roster({
 
       {playerId === null && (
         <Link
+          prefetch={false}
           href="/who"
           className="surface mt-4 flex min-h-14 items-center justify-between rounded-2xl px-4 font-display text-[17px] font-extrabold uppercase italic"
         >

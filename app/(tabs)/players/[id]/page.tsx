@@ -51,7 +51,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       <StaleCheck />
       <TopBar
         right={
-          <Link href="/" className="eyebrow flex min-h-11 items-center text-fg">
+          <Link prefetch={false} href="/" className="eyebrow flex min-h-11 items-center text-fg">
             ← Ranks
           </Link>
         }
@@ -90,6 +90,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             {rivals.map(({ player, die: d, spike: s }) => (
               <li key={player.id} className="flex min-h-12 items-center gap-2 border-b border-fg/10 last:border-b-0">
                 <Link
+                  prefetch={false}
                   href={`/players/${player.id}`}
                   className="flex min-h-11 flex-1 items-center self-stretch font-display text-[18px] font-bold uppercase"
                 >

@@ -44,6 +44,7 @@ export default function AppError({
           Try again
         </button>
         <Link
+          prefetch={false}
           href="/"
           className="mt-2 flex min-h-11 w-full items-center justify-center font-display text-[15px] font-bold uppercase tracking-[0.12em] text-fg/70"
         >

@@ -44,14 +44,6 @@ export function SwipeTabs({ children, className }: { children: React.ReactNode; 
   /** Set while a swipe is waiting for its page: where it left from, and which way it went. */
   const leaving = useRef<{ from: string; dir: SwipeDirection; animated: boolean } | null>(null)
 
-  // The tabs either side, fetched ahead so a swipe lands straight away.
-  useEffect(() => {
-    for (const dir of ['left', 'right'] as const) {
-      const target = swipeTarget(pathname, dir)
-      if (target) router.prefetch(target)
-    }
-  }, [pathname, router])
-
   // The new tab has rendered (hidden, off to the side): bring it in.
   useEffect(() => {
     const swipe = leaving.current
@@ -75,6 +67,8 @@ export function SwipeTabs({ children, className }: { children: React.ReactNode; 
 
     let start: { x: number; y: number; t: number } | null = null
     let axis: 'x' | 'y' | null = null
+    /** Tabs already warmed from this page, so a drag back and forth asks once. */
+    const warmed = new Set<string>()
 
     function snapBack() {
       if (!el) return
@@ -103,8 +97,18 @@ export function SwipeTabs({ children, className }: { children: React.ReactNode; 
       if (axis === null && Math.max(Math.abs(dx), Math.abs(dy)) > 10) {
         axis = Math.abs(dx) > SWIPE.straightness * Math.abs(dy) ? 'x' : 'y'
       }
-      if (axis !== 'x' || !animated) return
-      const hasTarget = swipeTarget(pathname, dx < 0 ? 'left' : 'right') !== null
+      if (axis !== 'x') return
+      const toward = swipeTarget(pathname, dx < 0 ? 'left' : 'right')
+      // Fetch the tab the finger is heading for once the drag is clearly
+      // sideways, so the swipe usually lands on a rendered page. Not on
+      // arrival: warming both neighbours of every page was two Worker
+      // invocations per page view, nearly all of them never used.
+      if (toward && !warmed.has(toward)) {
+        warmed.add(toward)
+        router.prefetch(toward)
+      }
+      if (!animated) return
+      const hasTarget = toward !== null
       const shift = hasTarget ? dx : Math.max(-MAX_RUBBER_BAND, Math.min(MAX_RUBBER_BAND, dx * RUBBER_BAND))
       el.style.transition = 'none'
       el.style.transform = `translate3d(${shift}px, 0, 0)`
