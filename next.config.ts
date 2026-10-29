@@ -5,11 +5,12 @@ const nextConfig: NextConfig = {
   // `workerd` build, which talks to Postgres over Workers sockets.
   serverExternalPackages: ["postgres"],
   experimental: {
-    // Keep pages in the phone's page cache so switching tabs doesn't wait on
-    // the server. `static` covers the full prefetches of the tab bar's links
-    // (prefetch={true}); `dynamic` covers pages reached any other way, for a
-    // back-and-forth. A cached page refreshes itself in the background once
-    // it is shown (components/RefreshIfStale.tsx), so instant never means stale.
+    // Keep pages in the phone's page cache so going back to a tab within a
+    // minute doesn't wait on the server. Links don't prefetch (each prefetch
+    // is a Worker invocation against the Free plan's CPU limit), so `dynamic`
+    // is the one doing most of the work. A cached page more than 30 s old
+    // refreshes itself in the background once shown
+    // (components/RefreshIfStale.tsx).
     staleTimes: { dynamic: 60, static: 300 },
   },
   async headers() {

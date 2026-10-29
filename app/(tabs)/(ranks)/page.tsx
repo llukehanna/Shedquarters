@@ -111,6 +111,7 @@ export default async function Ranks() {
                 hit {PROVISIONAL_GAMES}.
               </p>
               <Link
+                prefetch={false}
                 href="/table"
                 className="mt-8 flex min-h-14 items-center justify-center rounded-xl bg-gradient-to-br from-panel-glow to-panel-shade font-display text-[23px] font-extrabold italic uppercase text-panel-ink ring-1 ring-inset ring-panel-ink/35"
               >
@@ -197,6 +198,7 @@ export default async function Ranks() {
           )}
 
           <Link
+            prefetch={false}
             href="/games"
             className="group/card relative overflow-hidden transition-colors duration-150 ease-(--ease) active:glass lg:hidden surface mt-6 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
           >
@@ -206,6 +208,7 @@ export default async function Ranks() {
           </Link>
 
           <Link
+            prefetch={false}
             href="/h2h"
             className="group/card relative overflow-hidden transition-colors duration-150 ease-(--ease) active:glass lg:hidden surface mt-2 flex min-h-11 items-center justify-between rounded-2xl px-4 font-display text-[15px] font-bold uppercase text-fg"
           >

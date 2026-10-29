@@ -69,14 +69,45 @@ In production every variable is a **Worker secret** (`npx wrangler secret put NA
 
 Cloudflare Workers (Free) + Neon (Free) + Workers KV, all on free tiers: 100k requests a day, 100 CU-hours, 1 GB of KV, and one Cron Trigger.
 The Next.js app runs on Workers through the OpenNext adapter (`@opennextjs/cloudflare`); `wrangler.jsonc` is the Worker's config and `custom-worker.ts` its entry.
-The Worker is `house-ladder`, at [house-ladder.lllukehanna.workers.dev](https://house-ladder.lllukehanna.workers.dev). [die.lukeghanna.com](https://die.lukeghanna.com) is attached to it as a Workers custom domain, declared as a `routes` entry (`custom_domain: true`) in `wrangler.jsonc` so every deploy keeps it.
+The Worker is `house-ladder`, served only at [die.lukeghanna.com](https://die.lukeghanna.com), attached as a Workers custom domain and declared as a `routes` entry (`custom_domain: true`) in `wrangler.jsonc` so every deploy keeps it.
+Its `workers.dev` URL is turned off (`"workers_dev": false`): traffic there skipped the zone, so no WAF or rate-limiting rule could ever stop it, and an hour of it on 2026-10-26 caused ~800 CPU-limit errors. Don't turn it back on.
 
 **Raise Neon's scale-to-zero idle timeout from the 5-minute default to 1 hour** (Neon → project → Settings → Compute).
 At the default the database sleeps between games, and a mid-session tap pays up to a 3-second cold start on the party iPad.
 At the 0.25 CU floor, 100 CU-hours is roughly 400 hours of warm compute a month against an expected ~40, so an hour of idle warmth costs nothing that matters.
 
-**CPU.** The Free plan allows 10 ms of CPU per request, with some slack for occasional overruns. A rendered page costs more than that (about 15–40 ms measured), which has not produced an error so far.
-If pages start failing with **Error 1102** ("Worker exceeded resource limits"), the fix is Workers Paid ($5 a month, 30 s of CPU per request), with no code change.
+**CPU.** The Free plan allows 10 ms of CPU per request, with some slack for occasional overruns. A warm rendered page sits close to that, a cold isolate well past it, and in October 2026 that showed up as ~880 **Error 1102**s ("Worker exceeded resource limits") in two weeks, almost all from one hour of outside traffic through the workers.dev URL.
+What keeps it down:
+
+- **One front door.** `workers_dev` is off (above).
+- **Scanner probes never reach Next.** `custom-worker.ts` answers `/.env`, `/.git/…`, `*.php`, `/wp-…` and the like with a bare 404 (`lib/probe-paths.ts`).
+- **No prefetch fan-out.** Links don't prefetch (`prefetch={false}`), because every prefetch of a dynamic page is a full Worker invocation; opening the app used to cost ~18 of them. A swipe warms the tab it's heading to once the drag is clearly sideways. `RefreshIfStale` refreshes a page shown from the phone's cache only when it's more than 30 seconds old (the Table, shared by every phone at a night, still after 3). `tests/link-prefetch.test.ts` holds every `<Link>` to `prefetch={false}`.
+- **Hyperdrive** for the database, once it's created (below): no TLS handshake or password exchange inside the Worker on every request.
+
+If 1102s keep coming anyway, Workers Paid ($5 a month, 30 s of CPU per request) ends them with no code change.
+
+### Hyperdrive
+
+`lib/db.ts` connects through the `HYPERDRIVE` binding when `wrangler.jsonc` declares one, and straight to `DATABASE_URL` when it doesn't. To create it (once; Free plan includes Hyperdrive):
+
+```bash
+npx wrangler hyperdrive create house-ladder-db --caching-disabled \
+  --connection-string='<the Neon DIRECT connection string>'
+```
+
+- Use Neon's **direct** connection string (host without `-pooler`): Hyperdrive is the pool.
+- `--caching-disabled` is not optional. Caching is on by default and serves plain `SELECT`s up to a minute stale; this app reads its own writes (the table right after a game is logged), so a cached read shows the wrong table. `npx wrangler hyperdrive get <id>` shows the setting.
+- Then uncomment the `hyperdrive` block in `wrangler.jsonc`, paste the printed id, and deploy as usual. `DATABASE_URL` stays set: migrations, the fallback and the PIN gate use it.
+- **The PIN gate never goes through Hyperdrive.** Its transaction takes `pg_advisory_xact_lock`, and Hyperdrive lists advisory locks as unsupported, so `lib/gate.ts` uses `directSql` (`lib/db.ts`), always `DATABASE_URL`. Anything new that takes an advisory lock must do the same; `tests/db-route.test.ts` pins the gate.
+
+**Required check right after the first deploy with Hyperdrive on.** The interactive transactions (`logGame`, `voidLastGame`) and the `uuid[]` round trips were only tested under `wrangler dev`, which connects straight to the local database and bypasses Hyperdrive's pooling. On production, before a game night:
+
+1. Sign in at `/gate` with the PIN on a fresh browser (the gate's own direct connection).
+2. Start a night on `/table`, log a game, and check the table moved on (new holders, game 1 on the game log).
+3. Undo it (↶ Undo last game) and check the table is back where it was, then end the night.
+
+If any step fails, comment the `hyperdrive` block out again and redeploy: everything falls back to `DATABASE_URL`.
+A day or two later, check in Neon that the compute still suspends when idle. Hyperdrive holds a small pool of connections to the origin; if that kept the compute awake around the clock it would cost ~180 CU-hours a month, more than the free 100.
 
 ### First deploy
 

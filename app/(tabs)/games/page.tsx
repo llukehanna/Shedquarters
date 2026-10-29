@@ -32,7 +32,7 @@ export default async function GamesPage() {
     <main>
       <StaleCheck />
       <TopBar />
-      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg lg:hidden">
+      <Link prefetch={false} href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg lg:hidden">
         ← Ranks
       </Link>
 

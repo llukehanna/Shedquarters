@@ -82,11 +82,31 @@ describe('SwipeTabs', () => {
     expect(nav.push).not.toHaveBeenCalled()
   })
 
-  it('warms up the tabs either side', () => {
+  // Every prefetch is a Worker invocation (CPU-limited on the Free plan), so
+  // nothing is fetched just for arriving on a page.
+  it('fetches nothing ahead on arrival', () => {
     nav.pathname = '/table'
     renderTabs()
-    expect(nav.prefetch).toHaveBeenCalledWith('/')
-    expect(nav.prefetch).toHaveBeenCalledWith('/roster')
+    expect(nav.prefetch).not.toHaveBeenCalled()
+  })
+
+  it('warms the tab a sideways drag is heading for, once', () => {
+    nav.pathname = '/table'
+    renderTabs()
+    const el = screen.getByText('Rankings')
+    fireEvent.touchStart(el, { touches: [{ clientX: 220, clientY: 300 }] })
+    fireEvent.touchMove(el, { touches: [{ clientX: 180, clientY: 302 }] })
+    fireEvent.touchMove(el, { touches: [{ clientX: 120, clientY: 304 }] })
+    expect(nav.prefetch).toHaveBeenCalledTimes(1)
+    // In full, so the page is fetched during the drag, not after release.
+    expect(nav.prefetch).toHaveBeenCalledWith('/roster', { kind: 'full' })
+    expect(nav.push).not.toHaveBeenCalled()
+  })
+
+  it('warms nothing for a scroll', () => {
+    renderTabs()
+    swipe(screen.getByText('Rankings'), [200, 500], [150, 200])
+    expect(nav.prefetch).not.toHaveBeenCalled()
   })
 
   it('stands down at desktop width, where the rail does the navigating', () => {

@@ -40,7 +40,7 @@ export default async function HeadToHeadPage({
     <main>
       <StaleCheck />
       <TopBar />
-      <Link href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg lg:hidden">
+      <Link prefetch={false} href="/" className="eyebrow flex min-h-11 w-fit items-center text-fg lg:hidden">
         ← Ranks
       </Link>
 
@@ -147,6 +147,7 @@ function PlayerPicks({
         return (
           <li key={p.id}>
             <Link
+              prefetch={false}
               href={buildH2hHref(selection, slotKey, p.id)}
               aria-current={on ? 'true' : undefined}
               className={`inline-flex min-h-11 items-center rounded-full border px-4 font-display text-[17px] font-bold uppercase ${on ? 'border-accent bg-accent text-accent-ink' : 'surface transition-[translate,background] duration-250 ease-(--ease) active:glass active:duration-150 lg:hover:-translate-y-0.5'}`}

@@ -23,7 +23,7 @@ export default async function TablePage() {
   if (!table)
     return (
       <div className="lg:mx-auto lg:max-w-md">
-        <StaleCheck />
+        <StaleCheck live />
         <SessionSetup key={sport} sport={sport} players={players} />
       </div>
     )
@@ -31,7 +31,7 @@ export default async function TablePage() {
   return (
     // Phone width on desktop too; laying the table out wide is piece 2.
     <div className="lg:mx-auto lg:max-w-md">
-      <StaleCheck />
+      <StaleCheck live />
       <TableMode
         // Keyed on the session id so a session change — e.g. an undo pulls a
         // newly-started session into what was already a mounted TableMode —

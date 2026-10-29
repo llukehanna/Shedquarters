@@ -17,7 +17,7 @@ type Sql = postgres.Sql
 const onWorkers = typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers'
 
 let shared: Sql | undefined
-const perRequest = new WeakMap<object, Sql>()
+const perRequest = new WeakMap<object, Partial<Record<'pooled' | 'direct', Sql>>>()
 
 function databaseUrl(): string {
   const url = process.env.DATABASE_URL
@@ -25,26 +25,63 @@ function databaseUrl(): string {
   return url
 }
 
-function client(): Sql {
+type Route = 'pooled' | 'direct'
+
+function client(route: Route): Sql {
   if (!onWorkers) return (shared ??= postgres(databaseUrl()))
 
-  const { ctx } = getCloudflareContext()
-  let sql = perRequest.get(ctx)
+  const { ctx, env } = getCloudflareContext()
+  const clients = perRequest.get(ctx) ?? {}
+  perRequest.set(ctx, clients)
+  let sql = clients[route]
   if (!sql) {
-    // One connection per request: every connection to Postgres costs a TLS
-    // handshake and an auth round trip, which count against the Worker's CPU
-    // budget, and a request's queries are few. postgres.js queues the rest.
-    sql = postgres(databaseUrl(), { max: 1 })
-    perRequest.set(ctx, sql)
+    // `pooled` goes through Hyperdrive when the binding is there
+    // (wrangler.jsonc). Opened directly, every request pays a TLS handshake
+    // and a SCRAM password exchange with Neon inside the Worker, CPU against
+    // the Free plan's 10 ms, plus several round trips across the country
+    // before the first query. Hyperdrive keeps warm, authenticated
+    // connections to Neon and hands the Worker a local one, so both costs
+    // leave the request. Without the binding (before it is created, or in a
+    // preview) it is DATABASE_URL, exactly as before.
+    //
+    // `direct` is always DATABASE_URL: see `directSql`.
+    //
+    // fetch_types stays on (the default): postgres.js needs the array type
+    // catalogue to parse uuid[] columns (holders, team_a, ...) into arrays and
+    // to send JS arrays as Postgres arrays. Without it they arrive as '{...}'
+    // strings.
+    sql = postgres(connectionString(route, env), { max: 1 })
+    clients[route] = sql
   }
   return sql
 }
 
-export const sql: Sql = new Proxy(function () {} as unknown as Sql, {
-  apply: (_target, _this, args) => (client() as unknown as (...a: unknown[]) => unknown)(...args),
-  get: (_target, prop) => {
-    const c = client()
-    const value = Reflect.get(c, prop, c)
-    return typeof value === 'function' ? value.bind(c) : value
-  },
-})
+/** Which connection string a Worker request uses for `route`. Exported for tests. */
+export function connectionString(route: Route, env: unknown): string {
+  const hyperdrive = (env as { HYPERDRIVE?: { connectionString: string } } | undefined)?.HYPERDRIVE
+  if (route === 'pooled' && hyperdrive) return hyperdrive.connectionString
+  return databaseUrl()
+}
+
+function lazy(route: Route): Sql {
+  return new Proxy(function () {} as unknown as Sql, {
+    apply: (_target, _this, args) => (client(route) as unknown as (...a: unknown[]) => unknown)(...args),
+    get: (_target, prop) => {
+      const c = client(route)
+      const value = Reflect.get(c, prop, c)
+      return typeof value === 'function' ? value.bind(c) : value
+    },
+  })
+}
+
+/** Every query's client: through Hyperdrive on Workers when it is bound. */
+export const sql: Sql = lazy('pooled')
+
+/**
+ * Always a direct connection to DATABASE_URL, never Hyperdrive. For the
+ * statements Hyperdrive lists as unsupported: advisory locks
+ * (`pg_advisory_xact_lock` in lib/gate.ts). Anything that takes an advisory
+ * lock must use this, and it costs a full TLS + auth connection, so nothing
+ * else should. Under Node it is the same shared client as `sql`.
+ */
+export const directSql: Sql = lazy('direct')
